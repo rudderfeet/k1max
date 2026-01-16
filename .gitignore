@@ -1,3 +1,7 @@
+gcodes/
+logs/
+config/kamp/.github
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
