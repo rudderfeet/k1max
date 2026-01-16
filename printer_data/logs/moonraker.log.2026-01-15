@@ -1,0 +1,293 @@
+
+Application Info:
+platform: Linux-4.4.94-mips-with-glibc2.0
+data_path: /usr/data/printer_data
+is_default_data_path: False
+config_file: /usr/data/printer_data/config/moonraker.conf
+backup_config: None
+startup_warnings: []
+verbose: False
+debug: False
+asyncio_debug: False
+is_backup_config: False
+is_python_package: False
+instance_uuid: 49b174a6f7374fb9a9aff2a934e1a5b1
+unix_socket_path: /usr/data/printer_data/comms/moonraker.sock
+structured_logging: False
+software_version: ?
+log_file: /usr/data/printer_data/logs/moonraker.log
+python_version: 3.8.2 (default, Nov  6 2025, 22:01:46)  [GCC 7.2.0]
+launch_args: /usr/data/moonraker-env/bin/python /usr/data/moonraker/moonraker/moonraker.py -d /usr/data/printer_data
+msgspec_enabled: False
+uvloop_enabled: False
+[confighelper.py:read_file()] - Configuration File '/usr/data/printer_data/config/moonraker.conf' parsed, total size: 1060 B
+[server.py:add_log_rollover_item()] - 
+#################### Moonraker Configuration ####################
+
+[server]
+host = 0.0.0.0
+port = 7125
+klippy_uds_address = /tmp/klippy_uds
+disabled_components = ["dbus_manager"]
+max_upload_size = 1024
+
+[file_manager]
+queue_gcode_uploads = False
+enable_object_processing = False
+enable_inotify_warnings = False
+
+[database]
+
+[data_store]
+temperature_store_size = 600
+gcode_store_size = 1000
+
+[machine]
+provider = none
+validate_service = False
+validate_config = False
+
+[authorization]
+force_logins = False
+cors_domains = 
+	*.local
+	*.lan
+	*://app.fluidd.xyz
+trusted_clients = 
+	10.0.0.0/8
+	127.0.0.0/8
+	169.254.0.0/16
+	172.16.0.0/12
+	192.168.0.0/16
+	FE80::/10
+	::1/128
+
+[octoprint_compat]
+
+[history]
+
+[update_manager]
+channel = dev
+refresh_interval = 168
+
+[update_manager mainsail]
+type = web
+channel = stable
+repo = mainsail-crew/mainsail
+path = /usr/data/mainsail
+
+[update_manager fluidd]
+type = web
+channel = stable
+repo = fluidd-core/fluidd
+path = /usr/data/fluidd
+
+#################################################################
+All Configuration Files:
+/usr/data/printer_data/config/moonraker.conf
+#################################################################
+[server.py:load_component()] - Component (secrets) loaded
+[server.py:load_component()] - Component (template) loaded
+[server.py:load_component()] - Component (klippy_connection) loaded
+[application.py:__init__()] - Detected Tornado Version 6.1
+[server.py:load_component()] - Component (application) loaded
+[server.py:load_component()] - Component (websockets) loaded
+[server.py:add_log_rollover_item()] - Loading Sqlite database provider. Sqlite Version: 3.30.1
+[server.py:add_log_rollover_item()] - Unsafe Shutdown Count: 0
+[server.py:load_component()] - Component (database) loaded
+[server.py:load_component()] - Component (dbus_manager) loaded
+[file_manager.py:__init__()] - Using File System Observer: inotify
+[server.py:add_warning()] - [file_manager]: Option 'enable_inotify_warnings' is deprecated, see the configuration documentation at https://moonraker.readthedocs.io/en/latest/configuration/
+[server.py:load_component()] - Component (file_manager) loaded
+[database.py:register_table()] - Creating table authorized_users...
+[authorization.py:__init__()] - Authorization Configuration Loaded
+Trusted Clients:
+10.0.0.0/8
+127.0.0.0/8
+169.254.0.0/16
+172.16.0.0/12
+192.168.0.0/16
+fe80::/10
+::1/128
+CORS Domains:
+.*\.local
+.*\.lan
+.*://app\.fluidd\.xyz
+[server.py:load_component()] - Component (authorization) loaded
+[server.py:load_component()] - Component (klippy_apis) loaded
+[server.py:try_pip_recovery()] - Module 'distro' not found. Attempting Pip Update...
+[server.py:try_pip_recovery()] - Checking Pip Version...
+[server.py:try_pip_recovery()] - Installing Moonraker python dependencies...
+[pip_utils.py:_process_subproc_output()] - Looking in links: /usr/data/moonraker/scripts/python_wheels
+[pip_utils.py:_process_subproc_output()] - Collecting tornado<=6.5.4,>=6.2.0 (from -r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 3))
+[pip_utils.py:_process_subproc_output()] -   Downloading tornado-6.4.2.tar.gz (501 kB)
+[pip_utils.py:_process_subproc_output()] -   Installing build dependencies: started
+[pip_utils.py:_process_subproc_output()] -   Installing build dependencies: finished with status 'done'
+[pip_utils.py:_process_subproc_output()] -   Getting requirements to build wheel: started
+[pip_utils.py:_process_subproc_output()] -   Getting requirements to build wheel: finished with status 'done'
+[pip_utils.py:_process_subproc_output()] -   Preparing metadata (pyproject.toml): started
+[pip_utils.py:_process_subproc_output()] -   Preparing metadata (pyproject.toml): finished with status 'done'
+[pip_utils.py:_process_subproc_output()] - Requirement already satisfied: pyserial==3.4 in /usr/lib/python3.8/site-packages (from -r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 4)) (3.4)
+[pip_utils.py:_process_subproc_output()] - Collecting pillow<=12.1.0,>=9.5.0 (from -r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 5))
+[pip_utils.py:_process_subproc_output()] -   Downloading pillow-10.4.0.tar.gz (46.6 MB)
+[pip_utils.py:_process_subproc_output()] -      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 46.6/46.6 MB 2.5 MB/s eta 0:00:00
+[pip_utils.py:_process_subproc_output()] -   Installing build dependencies: started
+[pip_utils.py:_process_subproc_output()] -   Installing build dependencies: finished with status 'done'
+[pip_utils.py:_process_subproc_output()] -   Getting requirements to build wheel: started
+[pip_utils.py:_process_subproc_output()] -   Getting requirements to build wheel: finished with status 'done'
+[pip_utils.py:_process_subproc_output()] -   Preparing metadata (pyproject.toml): started
+[pip_utils.py:_process_subproc_output()] -   Preparing metadata (pyproject.toml): finished with status 'done'
+[pip_utils.py:_process_subproc_output()] - Collecting streaming-form-data<=1.19.1,>=1.11.0 (from -r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 6))
+[pip_utils.py:_process_subproc_output()] -   Downloading streaming-form-data-1.16.0.tar.gz (130 kB)
+[pip_utils.py:_process_subproc_output()] -   Preparing metadata (setup.py): started
+[pip_utils.py:_process_subproc_output()] -   Preparing metadata (setup.py): finished with status 'done'
+[pip_utils.py:_process_subproc_output()] - Collecting distro==1.9.0 (from -r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 7))
+[pip_utils.py:_process_subproc_output()] -   Downloading distro-1.9.0-py3-none-any.whl.metadata (6.8 kB)
+[pip_utils.py:_process_subproc_output()] - Requirement already satisfied: inotify-simple==2.0.1 in /usr/data/moonraker-env/lib/python3.8/site-packages (from -r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 8)) (2.0.1)
+[pip_utils.py:_process_subproc_output()] - Requirement already satisfied: libnacl==2.1.0 in /usr/lib/python3.8/site-packages (from -r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 9)) (2.1.0)
+[pip_utils.py:_process_subproc_output()] - Collecting paho-mqtt==2.1.0 (from -r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 10))
+[pip_utils.py:_process_subproc_output()] -   Downloading paho_mqtt-2.1.0-py3-none-any.whl.metadata (23 kB)
+[pip_utils.py:_process_subproc_output()] - Processing ./scripts/python_wheels/zeroconf-0.148.0-py3-none-any.whl (from -r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 11))
+[pip_utils.py:_process_subproc_output()] - Collecting preprocess-cancellation==0.2.1 (from -r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 12))
+[pip_utils.py:_process_subproc_output()] -   Downloading preprocess_cancellation-0.2.1-py3-none-any.whl.metadata (3.6 kB)
+[pip_utils.py:_process_subproc_output()] - Requirement already satisfied: jinja2==3.1.6 in /usr/lib/python3.8/site-packages (from -r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 13)) (3.1.6)
+[pip_utils.py:_process_subproc_output()] - Collecting dbus-fast<=3.1.2,>=2.21.3 (from -r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 14))
+[pip_utils.py:_process_subproc_output()] -   Downloading dbus_fast-2.24.4.tar.gz (69 kB)
+[pip_utils.py:_process_subproc_output()] -   Installing build dependencies: started
+[pip_utils.py:_process_subproc_output()] -   Installing build dependencies: finished with status 'done'
+[pip_utils.py:_process_subproc_output()] -   Getting requirements to build wheel: started
+[pip_utils.py:_process_subproc_output()] -   Getting requirements to build wheel: finished with status 'done'
+[pip_utils.py:_process_subproc_output()] -   Preparing metadata (pyproject.toml): started
+[pip_utils.py:_process_subproc_output()] -   Preparing metadata (pyproject.toml): finished with status 'done'
+[pip_utils.py:_process_subproc_output()] - Collecting apprise<=1.9.6,>=1.9.3 (from -r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 15))
+[pip_utils.py:_process_subproc_output()] -   Downloading apprise-1.9.3-py3-none-any.whl.metadata (53 kB)
+[pip_utils.py:_process_subproc_output()] - Collecting ldap3==2.9.1 (from -r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 16))
+[pip_utils.py:_process_subproc_output()] -   Downloading ldap3-2.9.1-py2.py3-none-any.whl.metadata (5.4 kB)
+[pip_utils.py:_process_subproc_output()] - Collecting python-periphery==2.4.1 (from -r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 17))
+[pip_utils.py:_process_subproc_output()] -   Downloading python_periphery-2.4.1-py2.py3-none-any.whl.metadata (1.5 kB)
+[pip_utils.py:_process_subproc_output()] - Requirement already satisfied: importlib_metadata<=8.7.1,>=6.7.0 in /usr/lib/python3.8/site-packages (from -r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 18)) (8.5.0)
+[pip_utils.py:_process_subproc_output()] - Requirement already satisfied: MarkupSafe>=2.0 in /usr/lib/python3.8/site-packages (from jinja2==3.1.6->-r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 13)) (2.1.5)
+[pip_utils.py:_process_subproc_output()] - Collecting pyasn1>=0.4.6 (from ldap3==2.9.1->-r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 16))
+[pip_utils.py:_process_subproc_output()] -   Downloading pyasn1-0.6.1-py3-none-any.whl.metadata (8.4 kB)
+[pip_utils.py:_process_subproc_output()] - Collecting smart_open>=6.0 (from streaming-form-data<=1.19.1,>=1.11.0->-r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 6))
+[pip_utils.py:_process_subproc_output()] -   Downloading smart_open-7.3.1-py3-none-any.whl.metadata (24 kB)
+[pip_utils.py:_process_subproc_output()] - Collecting ifaddr>=0.1.7 (from zeroconf<=0.148.0,>=0.131.0->-r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 11))
+[pip_utils.py:_process_subproc_output()] -   Downloading ifaddr-0.2.0-py3-none-any.whl.metadata (4.9 kB)
+[pip_utils.py:_process_subproc_output()] - INFO: pip is looking at multiple versions of zeroconf to determine which version is compatible with other requirements. This could take a while.
+[pip_utils.py:_process_subproc_output()] - Processing ./scripts/python_wheels/zeroconf-0.136.2-py3-none-any.whl (from -r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 11))
+[pip_utils.py:_process_subproc_output()] - Collecting async-timeout>=3.0.0 (from zeroconf<=0.148.0,>=0.131.0->-r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 11))
+[pip_utils.py:_process_subproc_output()] -   Downloading async_timeout-5.0.1-py3-none-any.whl.metadata (5.1 kB)
+[pip_utils.py:_process_subproc_output()] - Collecting certifi (from apprise<=1.9.6,>=1.9.3->-r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 15))
+[pip_utils.py:_process_subproc_output()] -   Downloading certifi-2026.1.4-py3-none-any.whl.metadata (2.5 kB)
+[pip_utils.py:_process_subproc_output()] - Collecting requests (from apprise<=1.9.6,>=1.9.3->-r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 15))
+[pip_utils.py:_process_subproc_output()] -   Downloading requests-2.32.4-py3-none-any.whl.metadata (4.9 kB)
+[pip_utils.py:_process_subproc_output()] - Collecting requests-oauthlib (from apprise<=1.9.6,>=1.9.3->-r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 15))
+[pip_utils.py:_process_subproc_output()] -   Downloading requests_oauthlib-2.0.0-py2.py3-none-any.whl.metadata (11 kB)
+[pip_utils.py:_process_subproc_output()] - Requirement already satisfied: click>=5.0 in /usr/lib/python3.8/site-packages (from apprise<=1.9.6,>=1.9.3->-r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 15)) (8.1.8)
+[pip_utils.py:_process_subproc_output()] - Requirement already satisfied: markdown in /usr/lib/python3.8/site-packages (from apprise<=1.9.6,>=1.9.3->-r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 15)) (3.7)
+[pip_utils.py:_process_subproc_output()] - Requirement already satisfied: PyYAML in /usr/lib/python3.8/site-packages (from apprise<=1.9.6,>=1.9.3->-r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 15)) (6.0.3)
+[pip_utils.py:_process_subproc_output()] - Requirement already satisfied: zipp>=3.20 in /usr/lib/python3.8/site-packages (from importlib_metadata<=8.7.1,>=6.7.0->-r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 18)) (3.20.2)
+[pip_utils.py:_process_subproc_output()] - Collecting wrapt (from smart_open>=6.0->streaming-form-data<=1.19.1,>=1.11.0->-r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 6))
+[pip_utils.py:_process_subproc_output()] -   Downloading wrapt-2.0.1-py3-none-any.whl.metadata (9.0 kB)
+[pip_utils.py:_process_subproc_output()] - Collecting charset_normalizer<4,>=2 (from requests->apprise<=1.9.6,>=1.9.3->-r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 15))
+[pip_utils.py:_process_subproc_output()] -   Downloading charset_normalizer-3.4.4-py3-none-any.whl.metadata (37 kB)
+[pip_utils.py:_process_subproc_output()] - Collecting idna<4,>=2.5 (from requests->apprise<=1.9.6,>=1.9.3->-r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 15))
+[pip_utils.py:_process_subproc_output()] -   Downloading idna-3.11-py3-none-any.whl.metadata (8.4 kB)
+[pip_utils.py:_process_subproc_output()] - Collecting urllib3<3,>=1.21.1 (from requests->apprise<=1.9.6,>=1.9.3->-r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 15))
+[pip_utils.py:_process_subproc_output()] -   Downloading urllib3-2.2.3-py3-none-any.whl.metadata (6.5 kB)
+[pip_utils.py:_process_subproc_output()] - Collecting oauthlib>=3.0.0 (from requests-oauthlib->apprise<=1.9.6,>=1.9.3->-r /usr/data/moonraker/scripts/moonraker-requirements.txt (line 15))
+[pip_utils.py:_process_subproc_output()] -   Downloading oauthlib-3.3.1-py3-none-any.whl.metadata (7.9 kB)
+[pip_utils.py:_process_subproc_output()] - Downloading distro-1.9.0-py3-none-any.whl (20 kB)
+[pip_utils.py:_process_subproc_output()] - Downloading paho_mqtt-2.1.0-py3-none-any.whl (67 kB)
+[pip_utils.py:_process_subproc_output()] - Downloading preprocess_cancellation-0.2.1-py3-none-any.whl (18 kB)
+[pip_utils.py:_process_subproc_output()] - Downloading ldap3-2.9.1-py2.py3-none-any.whl (432 kB)
+[pip_utils.py:_process_subproc_output()] - Downloading python_periphery-2.4.1-py2.py3-none-any.whl (36 kB)
+[pip_utils.py:_process_subproc_output()] - Downloading apprise-1.9.3-py3-none-any.whl (1.4 MB)
+[pip_utils.py:_process_subproc_output()] -    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.4/1.4 MB 4.3 MB/s eta 0:00:00
+[pip_utils.py:_process_subproc_output()] - Downloading async_timeout-5.0.1-py3-none-any.whl (6.2 kB)
+[pip_utils.py:_process_subproc_output()] - Downloading ifaddr-0.2.0-py3-none-any.whl (12 kB)
+[pip_utils.py:_process_subproc_output()] - Downloading pyasn1-0.6.1-py3-none-any.whl (83 kB)
+[pip_utils.py:_process_subproc_output()] - Downloading smart_open-7.3.1-py3-none-any.whl (61 kB)
+[pip_utils.py:_process_subproc_output()] - Downloading certifi-2026.1.4-py3-none-any.whl (152 kB)
+[pip_utils.py:_process_subproc_output()] - Downloading requests-2.32.4-py3-none-any.whl (64 kB)
+[pip_utils.py:_process_subproc_output()] - Downloading requests_oauthlib-2.0.0-py2.py3-none-any.whl (24 kB)
+[pip_utils.py:_process_subproc_output()] - Downloading charset_normalizer-3.4.4-py3-none-any.whl (53 kB)
+[pip_utils.py:_process_subproc_output()] - Downloading idna-3.11-py3-none-any.whl (71 kB)
+[pip_utils.py:_process_subproc_output()] - Downloading oauthlib-3.3.1-py3-none-any.whl (160 kB)
+[pip_utils.py:_process_subproc_output()] - Downloading urllib3-2.2.3-py3-none-any.whl (126 kB)
+[pip_utils.py:_process_subproc_output()] - Downloading wrapt-2.0.1-py3-none-any.whl (44 kB)
+[pip_utils.py:_process_subproc_output()] - Building wheels for collected packages: tornado, pillow, streaming-form-data, dbus-fast
+[pip_utils.py:_process_subproc_output()] -   WARNING: Building wheel for tornado failed: [Errno 28] No space left on device: '/root/.cache/pip/wheels'
+[pip_utils.py:_process_subproc_output()] -   WARNING: Building wheel for pillow failed: [Errno 28] No space left on device: '/root/.cache/pip/wheels'
+[pip_utils.py:_process_subproc_output()] -   WARNING: Building wheel for streaming-form-data failed: [Errno 28] No space left on device: '/root/.cache/pip/wheels'
+[pip_utils.py:_process_subproc_output()] -   WARNING: Building wheel for dbus-fast failed: [Errno 28] No space left on device: '/root/.cache/pip/wheels'
+[pip_utils.py:_process_subproc_output()] - Failed to build tornado pillow streaming-form-data dbus-fast
+[pip_utils.py:_process_subproc_output()] - WARNING: There was an error checking the latest version of pip.
+[pip_utils.py:_process_subproc_output()] - ERROR: Failed to build installable wheels for some pyproject.toml based projects (tornado, pillow, streaming-form-data, dbus-fast)
+[server.py:try_pip_recovery()] - Failed to install python packages
+Traceback (most recent call last):
+  File "/usr/data/moonraker/moonraker/server.py", line 563, in launch_server
+    server.load_components()
+  File "/usr/data/moonraker/moonraker/server.py", line 278, in load_components
+    self.load_component(config, component)
+  File "/usr/data/moonraker/moonraker/server.py", line 307, in load_component
+    module = importlib.import_module(full_name)
+  File "/usr/lib/python3.8/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1014, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 975, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 671, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 749, in exec_module
+  File "<frozen importlib._bootstrap>", line 219, in _call_with_frames_removed
+  File "/usr/data/moonraker/moonraker/components/machine.py", line 19, in <module>
+    import distro
+ModuleNotFoundError: No module named 'distro'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/data/moonraker/moonraker/server.py", line 359, in try_pip_recovery
+    pip_exec.install_packages(req_file, {"SKIP_CYTHON": "Y"})
+  File "/usr/data/moonraker/moonraker/utils/pip_utils.py", line 167, in install_packages
+    self.call_pip(f"install {args}", timeout=1200., env=env)
+  File "/usr/data/moonraker/moonraker/utils/pip_utils.py", line 143, in call_pip
+    _run_subprocess(f"{self.pip_cmd} {args}", timeout, env, self.response_hdlr)
+  File "/usr/data/moonraker/moonraker/utils/pip_utils.py", line 87, in _run_subprocess
+    raise PipException(f"Failed to run pip command '{cmd}'")
+moonraker.utils.pip_utils.PipException: Failed to run pip command '/usr/data/moonraker-env/bin/python -m pip install -U -r /usr/data/moonraker/scripts/moonraker-requirements.txt'
+[server.py:load_component()] - Unable to load component: (machine)
+Traceback (most recent call last):
+  File "/usr/data/moonraker/moonraker/server.py", line 307, in load_component
+    module = importlib.import_module(full_name)
+  File "/usr/lib/python3.8/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1014, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 975, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 671, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 749, in exec_module
+  File "<frozen importlib._bootstrap>", line 219, in _call_with_frames_removed
+  File "/usr/data/moonraker/moonraker/components/machine.py", line 19, in <module>
+    import distro
+ModuleNotFoundError: No module named 'distro'
+[server.py:launch_server()] - Moonraker Error
+Traceback (most recent call last):
+  File "/usr/data/moonraker/moonraker/server.py", line 563, in launch_server
+    server.load_components()
+  File "/usr/data/moonraker/moonraker/server.py", line 278, in load_components
+    self.load_component(config, component)
+  File "/usr/data/moonraker/moonraker/server.py", line 307, in load_component
+    module = importlib.import_module(full_name)
+  File "/usr/lib/python3.8/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1014, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 975, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 671, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 749, in exec_module
+  File "<frozen importlib._bootstrap>", line 219, in _call_with_frames_removed
+  File "/usr/data/moonraker/moonraker/components/machine.py", line 19, in <module>
+    import distro
+ModuleNotFoundError: No module named 'distro'
+[server.py:main()] - Server Shutdown

@@ -1,0 +1,1440 @@
+[INFO] 2020-03-01 20:01:16,431 [root] [klippy:main:414] Starting Klippy...
+[INFO] 2020-03-01 20:01:16,467 [root] [klippy:main:423] Args: ['/usr/share/klipper/klippy/klippy.py', '/usr/data/printer_data/config/printer.cfg', '-l', '/usr/data/printer_data/logs/klippy.log', '-a', '/tmp/klippy_uds']
+Git version: '09faed31-dirty'
+CPU: 2 core ?
+Python: '3.8.2 (default, Mar 15 2024, 10:58:36) \n[GCC 7.2.0]'
+[INFO] 2020-03-01 20:01:18,955 [root] [klippy:run:265] Start printer at Sun Mar  1 20:01:18 2020 (1583064079.0 19.8)
+[INFO] 2020-03-01 20:01:18,958 [root] [reactor:_dispatch_loop:340] _dispatch_loop current nice = 0
+[INFO] 2020-03-01 20:01:18,960 [root] [reactor:_dispatch_loop:342] _dispatch_loop new nice = -10
+[INFO] 2020-03-01 20:01:19,360 [root] [klippy:set_rollover_info:293] ===== Config file =====
+[force_move]
+enable_force_move = true
+
+[gcode_macro xyz_ready]
+variable_x_ready = 0
+variable_y_ready = 0
+variable_z_ready = 0
+variable_xy_moved = 0
+variable_z_moved = 0
+variable_safe_z = 3
+gcode = 
+
+[gcode_macro _IF_HOME_Z]
+gcode = 
+	{% if printer['gcode_macro xyz_ready'].z_ready|int == 1 %}
+	{% if printer.toolhead.position.z|int < 5 %}
+	{% set z_park = 5.0 - printer.toolhead.position.z|int %}
+	G91
+	G1 z{z_park} F600
+	G90
+	{% endif %}
+	{% else %}
+	{% if printer['gcode_macro xyz_ready'].z_moved|int == 0 %}
+	{% if printer.print_stats.z_pos|float <= 20.0 or printer.print_stats.power_loss == 1 %}
+	FORCE_MOVE STEPPER=stepper_z DISTANCE={printer["gcode_macro PRINTER_PARAM"].z_safe_g28} VELOCITY=10
+	{% else %}
+	FORCE_MOVE STEPPER=stepper_z DISTANCE=0.1 VELOCITY=10
+	{% endif %}
+	SET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=z_moved VALUE=1
+	{% endif %}
+	{% endif %}
+
+[gcode_macro _IF_MOVE_XY]
+gcode = 
+	_IF_HOME_Z
+	{% if printer['gcode_macro xyz_ready'].xy_moved|int == 0 %}
+	{action_respond_info("move xy\n")}
+	
+	FORCE_MOVE STEPPER=stepper_y DISTANCE=-14 VELOCITY=50
+	FORCE_MOVE STEPPER=stepper_y DISTANCE=7 VELOCITY=50
+	SET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=xy_moved VALUE=1
+	G4 P1000
+	{% endif %}
+
+[gcode_macro _HOME_X]
+gcode = 
+	_IF_MOVE_XY
+	
+	{% if printer['gcode_macro xyz_ready'].x_ready|int == 1 %}
+	{% if (printer.configfile.settings['stepper_x'].position_max - printer.toolhead.position.x)|round < 10 %}
+	{% set x_park = (10 - (printer.configfile.settings['stepper_x'].position_max - printer.toolhead.position.x))|round %}
+	{% if x_park > 0 %}
+	G91
+	G1 x-{x_park} F3600
+	G90
+	G4 P1000
+	{% endif %}
+	{% endif %}
+	{% endif %}
+	
+	
+	
+	
+	G28 X
+	SET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=x_ready VALUE=1
+	
+	G91
+	G1 x-10 F3600
+	G90
+	
+	G4 P2000
+
+[gcode_macro _HOME_Y]
+gcode = 
+	_IF_MOVE_XY
+	
+	{% if printer['gcode_macro xyz_ready'].y_ready|int == 1 %}
+	{% if printer.toolhead.position.y|round < 8 %}
+	{% set y_park = 8 - printer.toolhead.position.y|round %}
+	{% if y_park > 0 %}
+	G91
+	G1 y{y_park} F3600
+	G90
+	G4 P1000
+	{% endif %}
+	{% endif %}
+	{% endif %}
+	
+	
+	
+	
+	G28 Y
+	SET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=y_ready VALUE=1
+	
+	G91
+	G1 y10 F3600
+	G90
+	
+	G4 P2000
+
+[gcode_macro _HOME_Z]
+gcode = 
+	{% if printer['gcode_macro xyz_ready'].y_ready|int == 1 %}
+	{% if printer['gcode_macro xyz_ready'].x_ready|int == 1 %}
+	_IF_HOME_Z
+	{% endif %}
+	{% endif %}
+	{% if printer.print_stats.z_pos|float >= 260.0 %}
+	FORCE_MOVE STEPPER=stepper_z DISTANCE=-8 VELOCITY=10
+	{% endif %}
+	
+	{% set POSITION_X = printer.configfile.settings['stepper_x'].position_max/2 %}
+	{% set POSITION_Y = printer.configfile.settings['stepper_y'].position_max/2 %}
+	
+	G91
+	{% set x_park = POSITION_X - printer.toolhead.position.x|int %}
+	{% set y_park = POSITION_Y - printer.toolhead.position.y|int %}
+	{action_respond_info("x_park = %s \n" % (x_park))}
+	{action_respond_info("y_park = %s \n" % (y_park))}
+	G1 x{x_park} y{y_park} F3600
+	G90
+	
+	
+	G28 Z
+	SET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=z_ready VALUE=1
+
+[homing_override]
+axes = xyz
+gcode = 
+	M220 S100
+	
+	
+	
+	{% set x_axes = printer.toolhead.homed_axes %}
+	{% if x_axes is defined and x_axes[0] is defined %}
+	{action_respond_info(
+	"x_axes: %s \n"
+	% (x_axes))}
+	{% else %}
+	SET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=x_ready VALUE=0
+	SET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=y_ready VALUE=0
+	SET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=z_ready VALUE=0
+	SET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=xy_moved VALUE=0
+	SET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=z_moved VALUE=0
+	{action_respond_info(
+	"x_axes is NULL\n")}
+	{% endif %}
+	
+	{% if x_axes is not defined or x_axes[2] is not defined %}
+	BED_MESH_CLEAR
+	{% endif %}
+	
+	{% if x_axes is defined and x_axes[0] is defined and x_axes[1] is defined %}
+	{action_respond_info("x_axes: %s \n"% (x_axes))}
+	{% set position_y = printer.toolhead.position.y|int %}
+	{% set max_y_position = printer["gcode_macro PRINTER_PARAM"].max_y_position|int %}
+	{% if position_y >= max_y_position %}
+	G91
+	G0 Y-10 F3600
+	G90
+	{% endif %}
+	{% endif %}
+	
+	{% set home_all = 'X' not in params and 'Y' not in params %}
+	{% if 'Z' in params and 'X' not in params and 'Y' not in params %}
+	{% if x_axes[0] is defined and x_axes[1] is defined %}
+	{% set home_all = 0 %}
+	{% endif %}
+	{% endif %}
+	
+	{% if home_all or 'X' in params %}
+	_HOME_X
+	{% endif %}
+	
+	{% if home_all or 'Y' in params %}
+	_HOME_Y
+	{% endif %}
+	
+	{% if home_all or 'X' in params %}
+	_HOME_X
+	{% endif %}
+	
+	{% if home_all or 'Y' in params %}
+	_HOME_Y
+	{% endif %}
+	
+	{% if home_all or 'Z' in params %}
+	_HOME_Z
+	{% endif %}
+	BED_MESH_PROFILE LOAD="default"
+	
+	
+	
+	
+	G4 P500
+
+[gcode_macro PRINTER_PARAM]
+variable_z_safe_pause = 0.0
+variable_z_safe_g28 = 3.0
+variable_max_x_position = 300.0
+variable_max_y_position = 300.0
+variable_max_z_position = 300.0
+variable_fans = 3
+variable_auto_g29 = 0
+variable_fan0_min = 25
+variable_fan1_min = 50
+variable_fan2_min = 180
+variable_fan2_speed = 0
+variable_hotend_temp = 0
+variable_e_min_current = 0.27
+variable_cam_off_temp = 60
+gcode = 
+
+[gcode_macro AUTOTUNE_SHAPERS]
+variable_autotune_shapers = 'ei'
+gcode = 
+
+[gcode_macro LOAD_MATERIAL_CLOSE_FAN2]
+variable_fan2_value = 0
+gcode = 
+	SAVE_GCODE_STATE NAME=myMoveState
+	{% if printer['output_pin fan2'].value > 0.0 %}
+	SET_GCODE_VARIABLE MACRO=LOAD_MATERIAL_CLOSE_FAN2 VARIABLE=fan2_value VALUE={printer['output_pin fan2'].value}
+	M107 P2
+	{% endif %}
+	RESTORE_E_CURRENT
+
+[gcode_macro LOAD_MATERIAL_RESTORE_FAN2]
+gcode = 
+	{% set fan2_value = printer['gcode_macro LOAD_MATERIAL_CLOSE_FAN2'].fan2_value|float %}
+	RESTORE_GCODE_STATE NAME=myMoveState
+	{% if fan2_value > 0.0 %}
+	{% set s_value = (fan2_value * 255 - printer["gcode_macro PRINTER_PARAM"].fan2_min) * 255 / (255 - printer["gcode_macro PRINTER_PARAM"].fan2_min) %}
+	M106 P2 S{s_value}
+	SET_GCODE_VARIABLE MACRO=LOAD_MATERIAL_CLOSE_FAN2 VARIABLE=fan2_value VALUE=0
+	{% endif %}
+	SET_E_MIN_CURRENT
+
+[gcode_macro SET_E_MIN_CURRENT]
+gcode = 
+	{% set e_current = printer['gcode_macro PRINTER_PARAM'].e_min_current %}
+	M400
+	SET_TMC_CURRENT STEPPER=extruder CURRENT={e_current} HOLDCURRENT={e_current}
+	G4 P2000
+
+[gcode_macro RESTORE_E_CURRENT]
+gcode = 
+	{% set e_current = printer.configfile.settings['tmc2209 extruder'].run_current %}
+	M400
+	SET_TMC_CURRENT STEPPER=extruder CURRENT={e_current} HOLDCURRENT={e_current}
+	G4 P2000
+
+[gcode_macro LOAD_MATERIAL]
+gcode = 
+	LOAD_MATERIAL_CLOSE_FAN2
+	M109 S{printer.custom_macro.default_extruder_temp}
+	G91
+	G1 E80 F180
+	LOAD_MATERIAL_RESTORE_FAN2
+
+[gcode_macro QUIT_MATERIAL]
+gcode = 
+	SAVE_GCODE_STATE NAME=myMoveState
+	RESTORE_E_CURRENT
+	M109 S{printer.custom_macro.default_extruder_temp}
+	M83
+	G1 E100 F300
+	G1 E-15 F3000
+	G1 E-22.4700 F2400
+	G1 E-6.4200 F1200
+	G1 E-3.2100 F720
+	G1 E5.0000 F356
+	G1 E-5.0000 F384
+	G1 E5.0000 F412
+	G1 E-5.0000 F440
+	G1 E5.0000 F467
+	G1 E-5.0000 F495
+	G1 E5.0000 F523
+	G1 E-5.0000 F3000
+	G1 E-15 F3000
+	SET_E_MIN_CURRENT
+	RESTORE_GCODE_STATE NAME=myMoveState
+
+[gcode_macro Qmode]
+variable_flag = 0
+variable_accel = 0
+variable_accel_to_decel = 0
+variable_velocity = 0
+variable_square_corner_velocity = 0
+variable_pressure_advance = 0.0
+variable_fan0_value = 0.00
+variable_fan1_value = 0.00
+variable_fan2_value = 0.00
+variable_speed_factor = 0
+variable_max_accel = 2500
+variable_max_accel_to_decel = 2500
+gcode = 
+	{% set printer_state = printer.print_stats.state %}
+	{% if printer['gcode_macro Qmode'].flag|int == 0 %}
+	{% if printer_state == "printing" or printer_state == "paused" %}
+	SET_GCODE_VARIABLE MACRO=Qmode VARIABLE=accel VALUE={printer.toolhead.max_accel}
+	SET_GCODE_VARIABLE MACRO=Qmode VARIABLE=accel_to_decel VALUE={printer.toolhead.max_accel_to_decel}
+	SET_GCODE_VARIABLE MACRO=Qmode VARIABLE=velocity VALUE={printer.toolhead.max_velocity}
+	SET_GCODE_VARIABLE MACRO=Qmode VARIABLE=square_corner_velocity VALUE={printer.toolhead.square_corner_velocity}
+	SET_GCODE_VARIABLE MACRO=Qmode VARIABLE=pressure_advance VALUE={printer.extruder.pressure_advance}
+	SET_GCODE_VARIABLE MACRO=Qmode VARIABLE=speed_factor VALUE={printer.gcode_move.speed_factor}
+	SET_TMC_FIELD STEPPER=stepper_x FIELD=en_spreadcycle VALUE=0
+	SET_TMC_FIELD STEPPER=stepper_y FIELD=en_spreadcycle VALUE=0
+	SET_TMC_CURRENT STEPPER=stepper_x CURRENT=1.0
+	SET_TMC_CURRENT STEPPER=stepper_y CURRENT=1.0
+	G4 P1000
+	
+	
+	SET_VELOCITY_LIMIT ACCEL=2500
+	SET_VELOCITY_LIMIT ACCEL_TO_DECEL=2500
+	SET_VELOCITY_LIMIT VELOCITY=150
+	SET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY=5
+	SET_PRESSURE_ADVANCE ADVANCE=0.05
+	M220 S50
+	
+	{% set tmp = printer['output_pin fan0'].value * 255 %}
+	SET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan0_value VALUE={tmp}
+	{% if tmp - printer['gcode_macro PRINTER_PARAM'].fan0_min > (255 - printer['gcode_macro PRINTER_PARAM'].fan0_min) / 2 %}
+	{% set tmp = printer['gcode_macro PRINTER_PARAM'].fan0_min + (255 - printer['gcode_macro PRINTER_PARAM'].fan0_min) / 2 %}
+	SET_PIN PIN=fan0 VALUE={tmp}
+	{% endif %}
+	
+	{% set tmp = printer['output_pin fan1'].value * 255 %}
+	SET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan1_value VALUE={printer['output_pin fan1'].value * 255}
+	{% if tmp - printer['gcode_macro PRINTER_PARAM'].fan1_min > (255 - printer['gcode_macro PRINTER_PARAM'].fan1_min) / 2 %}
+	{% set tmp = printer['gcode_macro PRINTER_PARAM'].fan1_min + (255 - printer['gcode_macro PRINTER_PARAM'].fan1_min) / 2 %}
+	SET_PIN PIN=fan1 VALUE={tmp}
+	{% endif %}
+	
+	{% set tmp = printer['output_pin fan2'].value * 255 %}
+	SET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan2_value VALUE={printer['output_pin fan2'].value * 255}
+	{% if tmp - printer['gcode_macro PRINTER_PARAM'].fan2_min > (255 - printer['gcode_macro PRINTER_PARAM'].fan2_min) / 2 %}
+	{% set tmp = printer['gcode_macro PRINTER_PARAM'].fan2_min + (255 - printer['gcode_macro PRINTER_PARAM'].fan2_min) / 2 %}
+	SET_PIN PIN=fan2 VALUE={tmp}
+	{% endif %}
+	
+	SET_GCODE_VARIABLE MACRO=Qmode VARIABLE=flag VALUE=1
+	SET_QMODE_FLAG FLAG=1
+	{% endif %}
+	{% endif %}
+
+[gcode_macro Qmode_exit]
+gcode = 
+	{% set printer_state = printer.print_stats.state %}
+	{% if printer['gcode_macro Qmode'].flag|int == 1 %}
+	{% if printer_state == "printing" or printer_state == "paused" %}
+	SET_VELOCITY_LIMIT ACCEL={printer['gcode_macro Qmode'].accel}
+	SET_VELOCITY_LIMIT ACCEL_TO_DECEL={printer['gcode_macro Qmode'].accel_to_decel}
+	SET_VELOCITY_LIMIT VELOCITY={printer['gcode_macro Qmode'].velocity}
+	SET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY={printer['gcode_macro Qmode'].square_corner_velocity}
+	SET_PRESSURE_ADVANCE ADVANCE={printer['gcode_macro Qmode'].pressure_advance}
+	M220 S{printer['gcode_macro Qmode'].speed_factor * 100}
+	
+	{% set X_RUN_CUR = printer.configfile.settings['tmc2209 stepper_x'].run_current %}
+	{% set Y_RUN_CUR = printer.configfile.settings['tmc2209 stepper_y'].run_current %}
+	SET_TMC_CURRENT STEPPER=stepper_x CURRENT={X_RUN_CUR}
+	SET_TMC_CURRENT STEPPER=stepper_y CURRENT={Y_RUN_CUR}
+	SET_TMC_FIELD STEPPER=stepper_x FIELD=en_spreadcycle VALUE=1
+	SET_TMC_FIELD STEPPER=stepper_y FIELD=en_spreadcycle VALUE=1
+	G4 P1000
+	
+	{% if printer['output_pin fan0'].value != 0 %}
+	{action_respond_info("fan0_value = %s" % printer['gcode_macro Qmode'].fan0_value)}
+	SET_PIN PIN=fan0 VALUE={printer['gcode_macro Qmode'].fan0_value}
+	SET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan0_value VALUE=0
+	{% endif %}
+	{% if printer['output_pin fan1'].value != 0 %}
+	{action_respond_info("fan1_value = %s" % printer['gcode_macro Qmode'].fan1_value)}
+	SET_PIN PIN=fan1 VALUE={printer['gcode_macro Qmode'].fan1_value}
+	SET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan1_value VALUE=0
+	{% endif %}
+	{% if printer['output_pin fan2'].value != 0 %}
+	{action_respond_info("fan2_value = %s" % printer['gcode_macro Qmode'].fan2_value)}
+	SET_PIN PIN=fan2 VALUE={printer['gcode_macro Qmode'].fan2_value}
+	SET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan2_value VALUE=0
+	{% endif %}
+	
+	SET_GCODE_VARIABLE MACRO=Qmode VARIABLE=flag VALUE=0
+	SET_QMODE_FLAG FLAG=0
+	{% endif %}
+	{% endif %}
+
+[gcode_macro M204]
+rename_existing = M204.1
+gcode = 
+	
+	{% set get_params = "" %}
+	{% set qmode_max_accel = printer['gcode_macro Qmode'].max_accel|string %}
+	{% if 'S' in params|upper %}
+	{% if printer['gcode_macro Qmode'].flag|int == 1 and params.S|float > qmode_max_accel|float %}
+	{% set get_params = (get_params + ' ' + 'S' + qmode_max_accel) %}
+	{% else %}
+	{% set get_params = (get_params + ' ' + 'S' + params.S) %}
+	{% endif %}
+	{% endif %}
+	{% if 'P' in params|upper %}
+	{% if printer['gcode_macro Qmode'].flag|int == 1 and params.P|float > qmode_max_accel|float %}
+	{% set get_params = (get_params + ' ' + 'P' + qmode_max_accel) %}
+	{% else %}
+	{% set get_params = (get_params + ' ' + 'P' + params.P) %}
+	{% endif %}
+	{% endif %}
+	{% if 'T' in params|upper %}
+	{% if printer['gcode_macro Qmode'].flag|int == 1 and params.T|float > qmode_max_accel|float %}
+	{% set get_params = (get_params + ' ' + 'T' + qmode_max_accel) %}
+	{% else %}
+	{% set get_params = (get_params + ' ' + 'T' + params.T) %}
+	{% endif %}
+	{% endif %}
+	M204.1 {get_params}
+
+[gcode_macro M205]
+gcode = 
+	{% if 'X' in params %}
+	SET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY={params.X}
+	{% elif 'Y' in params %}
+	SET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY={params.Y}
+	{% endif %}
+
+[gcode_macro M106]
+gcode = 
+	{% set fans = printer["gcode_macro PRINTER_PARAM"].fans|int %}
+	{% set fan = 0 %}
+	{% set value = 0 %}
+	{% if params.P is defined %}
+	{% set tmp = params.P|int %}
+	{% if tmp < fans %}
+	{% set fan = tmp %}
+	{% endif %}
+	{% endif %}
+	{% if params.S is defined %}
+	{% set tmp = params.S|float %}
+	{% else %}
+	{% set tmp = 255 %}
+	{% endif %}
+	{% if tmp > 0 %}
+	{% if fan == 0 %}
+	{% set value = (255 - printer["gcode_macro PRINTER_PARAM"].fan0_min) / 255 * tmp %}
+	{% if printer['gcode_macro Qmode'].flag | int == 1 %}
+	SET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan0_value VALUE={printer["gcode_macro PRINTER_PARAM"].fan0_min + value}
+	{% if value > (255 - printer['gcode_macro PRINTER_PARAM'].fan0_min) / 2  %}
+	{% set value = printer["gcode_macro PRINTER_PARAM"].fan0_min + (255 - printer['gcode_macro PRINTER_PARAM'].fan0_min) / 2 %}
+	{% else %}
+	{% set value = printer["gcode_macro PRINTER_PARAM"].fan0_min + value %}
+	{% endif %}
+	{% else %}
+	{% set value = printer["gcode_macro PRINTER_PARAM"].fan0_min + value %}
+	{% endif %}
+	{% endif %}
+	{% if fan == 1 %}
+	{% set value = (255 - printer["gcode_macro PRINTER_PARAM"].fan1_min) / 255 * tmp %}
+	{% if printer['gcode_macro Qmode'].flag | int == 1 %}
+	SET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan1_value VALUE={printer["gcode_macro PRINTER_PARAM"].fan1_min + value}
+	{% if value > (255 - printer['gcode_macro PRINTER_PARAM'].fan1_min) / 2  %}
+	{% set value = printer["gcode_macro PRINTER_PARAM"].fan1_min + (255 - printer['gcode_macro PRINTER_PARAM'].fan1_min) / 2 %}
+	{% else %}
+	{% set value = printer["gcode_macro PRINTER_PARAM"].fan1_min + value %}
+	{% endif %}
+	{% else %}
+	{% set value = printer["gcode_macro PRINTER_PARAM"].fan1_min + value %}
+	{% endif %}
+	{% endif %}
+	{% if fan == 2 %}
+	{% set value = (255 - printer["gcode_macro PRINTER_PARAM"].fan2_min) / 255 * tmp %}
+	{% if printer['gcode_macro Qmode'].flag | int == 1 %}
+	SET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan2_value VALUE={printer["gcode_macro PRINTER_PARAM"].fan2_min + value}
+	{% if value > (255 - printer['gcode_macro PRINTER_PARAM'].fan2_min) / 2  %}
+	{% set value = printer["gcode_macro PRINTER_PARAM"].fan2_min + (255 - printer['gcode_macro PRINTER_PARAM'].fan2_min) / 2 %}
+	{% else %}
+	{% set value = printer["gcode_macro PRINTER_PARAM"].fan2_min + value %}
+	{% endif %}
+	{% else %}
+	{% set value = printer["gcode_macro PRINTER_PARAM"].fan2_min + value %}
+	{% endif %}
+	{% endif %}
+	{% endif %}
+	{% if value >= 255 %}
+	{% set value = 255 %}
+	{% endif %}
+	SET_PIN PIN=fan{fan} VALUE={value}
+
+[gcode_macro M107]
+gcode = 
+	{% set fans = printer["gcode_macro PRINTER_PARAM"].fans|int %}
+	{% if params.P is defined %}
+	{% if params.P|int < fans %}
+	SET_PIN PIN=fan{params.P|int} VALUE=0
+	{% else %}
+	SET_PIN PIN=fan0 VALUE=0
+	{% endif %}
+	{% else %}
+	SET_PIN PIN=fan0 VALUE=0
+	SET_PIN PIN=fan2 VALUE=0
+	{% endif %}
+
+[gcode_macro M141]
+description = Set Chamber temperature with slicers
+gcode = 
+	{% if 'S' in params|upper %}
+	{% if printer["temperature_fan chamber_fan"].speed > 0.0 %}
+	SET_PIN PIN=fan1 VALUE=255
+	{% else %}
+	SET_PIN PIN=fan1 VALUE=0
+	{% endif %}
+	{% if params.S|int > 0 %}
+	SET_TEMPERATURE_FAN_TARGET TEMPERATURE_FAN=chamber_fan TARGET={params.S|default(35)}
+	{% else %}
+	SET_TEMPERATURE_FAN_TARGET TEMPERATURE_FAN=chamber_fan TARGET=35
+	{% if params.S|int == 0 %}
+	SET_PIN PIN=fan1 VALUE=0
+	{% endif %}
+	{% endif %}
+	{% endif %}
+
+[gcode_macro M900]
+gcode = 
+	{% if 'K' in params %}
+	{% if 'E' in params %}
+	SET_PRESSURE_ADVANCE EXTRUDER={params.E} ADVANCE={params.K}
+	{% else %}
+	SET_PRESSURE_ADVANCE ADVANCE={params.K}
+	{% endif %}
+	{% endif %}
+
+[delayed_gcode wait_temp]
+gcode = 
+	{% set cur_temp = printer.extruder.temperature %}
+	{% if cur_temp|int < 40 %}
+	WAIT_TEMP_END
+	{% else %}
+	UPDATE_DELAYED_GCODE ID=wait_temp DURATION=5
+	{% endif %}
+
+[gcode_macro WAIT_TEMP_START]
+gcode = 
+	{action_respond_info("wait temp start\n")}
+	UPDATE_DELAYED_GCODE ID=wait_temp DURATION=1
+	M106 P0 S255
+
+[gcode_macro WAIT_TEMP_END]
+gcode = 
+	{action_respond_info("wait temp end\n")}
+	UPDATE_DELAYED_GCODE ID=wait_temp DURATION=0
+	M106 P0 S0
+
+[gcode_macro PRINT_CALIBRATION]
+gcode = 
+	CX_PRINT_LEVELING_CALIBRATION
+
+[gcode_macro FIRST_FLOOR_PAUSE_POSITION]
+gcode = 
+	{% set extruder_temp = printer.custom_macro.g28_ext_temp %}
+	M104 S{extruder_temp}
+	{% set y_park = printer.toolhead.axis_maximum.y/2 %}
+	{% set x_park = printer['gcode_macro PRINTER_PARAM'].max_x_position|float + 1 %}
+	G90
+	G1 Z2 F600
+	G1 X{x_park} Y{y_park} F6000
+	G1 Z0.2 F600
+
+[gcode_macro ACCURATE_G28]
+gcode = 
+	ACCURATE_HOME_Z
+
+[gcode_macro START_PRINT]
+variable_prepare = 0
+gcode = 
+	WAIT_TEMP_END
+	CLEAR_PAUSE
+	{% set g28_extruder_temp = printer.custom_macro.g28_ext_temp %}
+	{% set bed_temp = printer.custom_macro.default_bed_temp %}
+	{% set extruder_temp = printer.custom_macro.default_extruder_temp %}
+	
+	{% if 'BED_TEMP' in params|upper and (params.BED_TEMP|float) %}
+	{% set bed_temp = params.BED_TEMP %}
+	{% endif %}
+	
+	{% if 'EXTRUDER_TEMP' in params|upper and (params.EXTRUDER_TEMP|float) %}
+	{% set extruder_temp = params.EXTRUDER_TEMP %}
+	{% endif %}
+	
+	{% if printer['gcode_macro START_PRINT'].prepare|int == 0 %}
+	{action_respond_info("not prepare.\n")}
+	PRINT_PREPARE_CLEAR
+	CX_ROUGH_G28 EXTRUDER_TEMP={extruder_temp} BED_TEMP={bed_temp}
+	CX_NOZZLE_CLEAR
+	ACCURATE_G28
+	CX_PRINT_LEVELING_CALIBRATION
+	{% else %}
+	PRINT_PREPARE_CLEAR
+	{% endif %}
+	
+	CX_PRINT_DRAW_ONE_LINE
+
+[gcode_macro PRINT_PREPARED]
+gcode = 
+	SET_GCODE_VARIABLE MACRO=START_PRINT VARIABLE=prepare VALUE=1
+	{action_respond_info("print prepared")}
+
+[gcode_macro PRINT_PREPARE_CLEAR]
+gcode = 
+	SET_GCODE_VARIABLE MACRO=START_PRINT VARIABLE=prepare VALUE=0
+
+[gcode_macro END_PRINT_POINT_WITHOUT_LIFTING]
+gcode = 
+	{% if "xyz" in printer.toolhead.homed_axes %}
+	{% set E = printer["gcode_macro PAUSE"].extrude|float %}
+	G91
+	{% if printer.extruder.can_extrude|lower == 'true' %}
+	G1 E-1.0 F180
+	G1 E-{E} F4000
+	{% else %}
+	{action_respond_info("Extruder not hot enough")}
+	{% endif %}
+	G1 Z2.0 F600
+	G90
+	{% set y_park = printer.toolhead.axis_maximum.y/2 %}
+	{% set x_park = printer.toolhead.axis_maximum.x|float - 10.0 %}
+	G1 X{x_park} Y{y_park} F30000
+	{% else %}
+	{action_respond_info("end print xyz_axes is NULL\n")}
+	{% endif %}
+
+[gcode_macro END_PRINT_POINT]
+gcode = 
+	{% if "xyz" in printer.toolhead.homed_axes %}
+	{% set E = printer["gcode_macro PAUSE"].extrude|float %}
+	{% set max_z = printer["gcode_macro PRINTER_PARAM"].max_z_position|float %}
+	{% set act_z = printer.toolhead.position.z|float %}
+	{% set z_safe = 0.0 %}
+	{% if act_z < (max_z / 2) %}
+	{% set z_safe = (max_z / 2) - act_z %}
+	{% elif act_z < max_z %}
+	{% set z_safe = 2.0 %}
+	{% endif %}
+	G91
+	{% if printer.extruder.can_extrude|lower == 'true' %}
+	G1 E-1.0 F180
+	G1 E-{E} F4000
+	{% else %}
+	{action_respond_info("Extruder not hot enough")}
+	{% endif %}
+	G1 Z2.0 F600
+	G90
+	{% set y_park = printer.toolhead.axis_maximum.y/2 %}
+	{% set x_park = printer.toolhead.axis_maximum.x|float - 10.0 %}
+	G1 X{x_park} Y{y_park} F30000
+	{% if z_safe > 2.0 %}
+	G91
+	{% set z_safe = z_safe - 2.0 %}
+	G1 Z{z_safe} F600
+	G90
+	{% endif %}
+	{% else %}
+	{action_respond_info("end print xyz_axes is NULL\n")}
+	{% endif %}
+
+[gcode_macro END_PRINT]
+gcode = 
+	Qmode_exit
+	EXCLUDE_OBJECT_RESET
+	PRINT_PREPARE_CLEAR
+	M220 S100
+	SET_VELOCITY_LIMIT ACCEL=5000 ACCEL_TO_DECEL=2500
+	TURN_OFF_HEATERS
+	M107 P1
+	M107 P2
+	END_PRINT_POINT
+	WAIT_TEMP_START
+	M84
+
+[gcode_macro FIRST_FLOOR_PAUSE]
+description = Pause the first floor print
+variable_extrude = 2.0
+gcode = 
+	
+	{% set E = printer["gcode_macro FIRST_FLOOR_PAUSE"].extrude|float %}
+	
+	
+	{% set y_park = printer.toolhead.axis_maximum.y/2 %}
+	{% set x_park = printer.toolhead.axis_maximum.x|float - 10.0 %}
+	
+	{% set max_z = printer["gcode_macro PRINTER_PARAM"].max_z_position|float %}
+	{% set act_z = printer.toolhead.position.z|float %}
+	{% set z_safe = 0.0 %}
+	{% if act_z < (max_z - 2.0) %}
+	{% set z_safe = 2.0 %}
+	{% elif act_z < max_z %}
+	{% set z_safe = max_z - act_z %}
+	{% endif %}
+	
+	SET_GCODE_VARIABLE MACRO=PRINTER_PARAM VARIABLE=z_safe_pause VALUE={z_safe|float}
+	PAUSE_BASE
+	G91
+	{% if "xyz" in printer.toolhead.homed_axes %}
+	{% if printer.extruder.can_extrude|lower == 'true' %}
+	G1 E-1.0 F180
+	G1 E-{E} F4000
+	{% else %}
+	{action_respond_info("Extruder not hot enough")}
+	{% endif %}
+	G1 Z{z_safe} F600
+	G90
+	G1 X{x_park} Y{y_park} F30000
+	{% else %}
+	{action_respond_info("Printer not homed")}
+	{% endif %}
+	
+	SET_GCODE_VARIABLE MACRO=PRINTER_PARAM VARIABLE=fan2_speed VALUE={printer['output_pin fan2'].value}
+	{% set fspeed = printer['gcode_macro PRINTER_PARAM'].fan2_speed %}
+	{action_respond_info("fan2_value = %s \n" % (fspeed))}
+	
+	M106 P2 S0
+	SET_E_MIN_CURRENT
+
+[gcode_macro FIRST_FLOOR_RESUME]
+description = Resume the first floor print
+gcode = 
+	RESTORE_E_CURRENT
+	{% if printer['gcode_macro PRINTER_PARAM'].fan2_speed > 0 %}
+	
+	
+	
+	{% set s_value = (printer['gcode_macro PRINTER_PARAM'].fan2_speed * 255 - printer['gcode_macro PRINTER_PARAM'].fan2_min) * 255 / (255 - printer['gcode_macro PRINTER_PARAM'].fan2_min)|float %}
+	M106 P2 S{s_value}
+	{% endif %}
+	
+	{% set E = printer["gcode_macro FIRST_FLOOR_PAUSE"].extrude|float + 1.0 %}
+	
+	{% if 'VELOCITY' in params|upper %}
+	{% set get_params = ('VELOCITY=' + params.VELOCITY) %}
+	{%else %}
+	{% set get_params = "" %}
+	{% endif %}
+	
+	{% if printer.extruder.can_extrude|lower == 'true' %}
+	G91
+	G1 E{E} F2100
+	{% else %}
+	{action_respond_info("Extruder not hot enough")}
+	{% endif %}
+	M400
+	RESUME_BASE {get_params}
+
+[gcode_macro PAUSE]
+description = Pause the actual running print
+rename_existing = PAUSE_BASE
+variable_extrude = 2.0
+gcode = 
+	
+	{% set E = printer["gcode_macro PAUSE"].extrude|float %}
+	
+	
+	{% set y_park = printer.toolhead.axis_maximum.y/2 %}
+	{% set x_park = printer.toolhead.axis_maximum.x|float - 10.0 %}
+	
+	{% set max_z = printer["gcode_macro PRINTER_PARAM"].max_z_position|float %}
+	{% set act_z = printer.toolhead.position.z|float %}
+	{% set z_safe = 0.0 %}
+	{% if act_z < 48.0 %}
+	{% set z_safe = 50.0 - act_z %}
+	{% elif act_z < (max_z - 2.0) %}
+	{% set z_safe = 2.0 %}
+	{% elif act_z < max_z %}
+	{% set z_safe = max_z - act_z %}
+	{% endif %}
+	{action_respond_info("z_safe = %s"% (z_safe))}
+	
+	SET_GCODE_VARIABLE MACRO=PRINTER_PARAM VARIABLE=z_safe_pause VALUE={z_safe|float}
+	PAUSE_BASE
+	G91
+	SET_GCODE_VARIABLE MACRO=PRINTER_PARAM VARIABLE=hotend_temp VALUE={printer.extruder.target}
+	M104 S140
+	{% if "xyz" in printer.toolhead.homed_axes %}
+	{% if printer.extruder.can_extrude|lower == 'true' %}
+	G1 E-1.0 F180
+	G1 E-{E} F4000
+	{% else %}
+	{action_respond_info("Extruder not hot enough")}
+	{% endif %}
+	G1 Z{z_safe} F600
+	M400
+	G90
+	G1 X{x_park} Y{y_park} F30000
+	{% else %}
+	{action_respond_info("Printer not homed")}
+	{% endif %}
+	
+	SET_GCODE_VARIABLE MACRO=PRINTER_PARAM VARIABLE=fan2_speed VALUE={printer['output_pin fan2'].value}
+	{% set fspeed = printer['gcode_macro PRINTER_PARAM'].fan2_speed %}
+	{action_respond_info("fan2_value = %s \n" % (fspeed))}
+	
+	M106 P2 S0
+	SET_E_MIN_CURRENT
+
+[gcode_macro INPUTSHAPER]
+gcode = 
+	SET_FILAMENT_SENSOR SENSOR=filament_sensor ENABLE=0
+	SET_FILAMENT_SENSOR SENSOR=filament_sensor_2 ENABLE=0
+	G90
+	G28
+	{% set POSITION_X = printer.configfile.settings['stepper_x'].position_max/2 %}
+	{% set POSITION_Y = printer.configfile.settings['stepper_y'].position_max/2 %}
+	G1 X{POSITION_X} Y{POSITION_Y} F6000
+	G1 Z10 F600
+	SHAPER_CALIBRATE AXIS=y
+	CXSAVE_CONFIG
+	SET_FILAMENT_SENSOR SENSOR=filament_sensor ENABLE=1
+	SET_FILAMENT_SENSOR SENSOR=filament_sensor_2 ENABLE=1
+
+[gcode_macro BEDPID]
+gcode = 
+	PID_CALIBRATE HEATER=heater_bed TARGET=100
+	SAVE_CONFIG
+
+[gcode_macro TUNOFFINPUTSHAPER]
+gcode = 
+	SET_INPUT_SHAPER SHAPER_FREQ_X=0 SHAPER_FREQ_Y=0
+
+[gcode_macro RESUME]
+description = Resume the actual running print
+rename_existing = RESUME_BASE
+gcode = 
+	RESTORE_E_CURRENT
+	{% if printer['gcode_macro PRINTER_PARAM'].hotend_temp|int != 0 %}
+	{% if printer['gcode_macro PRINTER_PARAM'].hotend_temp|int > printer.extruder.temperature %}
+	M109 S{printer['gcode_macro PRINTER_PARAM'].hotend_temp|int}
+	{% else %}
+	M104 S{printer['gcode_macro PRINTER_PARAM'].hotend_temp|int}
+	{% endif %}
+	SET_GCODE_VARIABLE MACRO=PRINTER_PARAM VARIABLE=hotend_temp VALUE=0
+	{% endif %}
+	{% if printer['gcode_macro PRINTER_PARAM'].fan2_speed > 0 %}
+	
+	
+	
+	{% set s_value = (printer['gcode_macro PRINTER_PARAM'].fan2_speed * 255 - printer['gcode_macro PRINTER_PARAM'].fan2_min) * 255 / (255 - printer['gcode_macro PRINTER_PARAM'].fan2_min)|float %}
+	M106 P2 S{s_value}
+	{% endif %}
+	{% set z_resume_move = printer['gcode_macro PRINTER_PARAM'].z_safe_pause|int %}
+	{% if z_resume_move > 2 %}
+	{% set z_resume_move = z_resume_move - 2 %}
+	G91
+	G1 Z-{z_resume_move} F600
+	M400
+	{% endif %}
+	{action_respond_info("z_resume_move = %s"% (z_resume_move))}
+	
+	{% set E = printer["gcode_macro PAUSE"].extrude|float + 1.0 %}
+	
+	{% if 'VELOCITY' in params|upper %}
+	{% set get_params = ('VELOCITY=' + params.VELOCITY) %}
+	{%else %}
+	{% set get_params = "" %}
+	{% endif %}
+	
+	{% if printer.extruder.can_extrude|lower == 'true' %}
+	G91
+	G1 E{E} F2100
+	G90
+	{% else %}
+	{action_respond_info("Extruder not hot enough")}
+	{% endif %}
+	M400
+	RESUME_BASE {get_params}
+
+[gcode_macro CANCEL_PRINT]
+description = Cancel the actual running print
+rename_existing = CANCEL_PRINT_BASE
+gcode = 
+	END_PRINT
+	CANCEL_PRINT_BASE
+
+[gcode_macro G29]
+gcode = 
+	{% if 'PROBE_COUNT' in params|upper %}
+	{% set get_count = ('PROBE_COUNT' + params.PROBE_COUNT) %}
+	{%else %}
+	{% set get_count = "" %}
+	{% endif %}
+	
+	{% set bed_temp = printer.custom_macro.default_bed_temp %}
+	{% set extruder_temp = printer.custom_macro.g28_ext_temp %}
+	{% set nozzle_clear_temp = printer.custom_macro.default_extruder_temp %}
+	
+	{% if 'BED_TEMP' in params|upper %}
+	{% set bed_temp = params.BED_TEMP %}
+	{% endif %}
+	
+	{% if 'EXTRUDER_TEMP' in params|upper %}
+	{% set nozzle_clear_temp = params.EXTRUDER_TEMP %}
+	{% endif %}
+	SET_FILAMENT_SENSOR SENSOR=filament_sensor ENABLE=0
+	SET_FILAMENT_SENSOR SENSOR=filament_sensor_2 ENABLE=0
+	
+	G28
+	BED_MESH_CLEAR
+	NOZZLE_CLEAR HOT_MIN_TEMP={extruder_temp} HOT_MAX_TEMP={nozzle_clear_temp} BED_MAX_TEMP={bed_temp}
+	ACCURATE_G28
+	M204 S5000
+	SET_VELOCITY_LIMIT ACCEL_TO_DECEL=5000
+	BED_MESH_CALIBRATE {get_count}
+	BED_MESH_OUTPUT
+	{% set y_park = printer.toolhead.axis_maximum.y/2 %}
+	{% set x_park = printer.toolhead.axis_maximum.x|float - 10.0 %}
+	G1 X{x_park} Y{y_park} F2000
+	CXSAVE_CONFIG
+	TURN_OFF_HEATERS
+	SET_FILAMENT_SENSOR SENSOR=filament_sensor ENABLE=1
+	SET_FILAMENT_SENSOR SENSOR=filament_sensor_2 ENABLE=1
+
+[fan_feedback]
+fan0_pin = nozzle_mcu:PB4
+fan1_pin = PC6
+print_delay_time = 5
+current_delay_time = 2
+
+[custom_macro]
+default_bed_temp = 50
+default_extruder_temp = 240
+g28_ext_temp = 140
+
+[mcu]
+serial = /dev/ttyS7
+baud = 230400
+restart_method = command
+
+[mcu nozzle_mcu]
+serial = /dev/ttyS1
+baud = 230400
+restart_method = command
+
+[mcu leveling_mcu]
+serial = /dev/ttyS9
+baud = 230400
+restart_method = command
+
+[verify_heater extruder]
+
+[verify_heater heater_bed]
+check_gain_time = 120
+heating_gain = 1.0
+hysteresis = 10
+
+[mcu rpi]
+serial = /tmp/klipper_host_mcu
+
+[bl24c16f]
+i2c_mcu = rpi
+i2c_bus = i2c.2
+i2c_speed = 400000
+
+[idle_timeout]
+timeout = 99999999
+
+[virtual_sdcard]
+path = /usr/data/printer_data/gcodes
+
+[gcode_arcs]
+resolution = 1.0
+
+[temperature_sensor mcu_temp]
+sensor_type = temperature_mcu
+min_temp = 0
+max_temp = 100
+
+[temperature_sensor chamber_temp]
+sensor_type = EPCOS 100K B57560G104F
+sensor_pin = PC5
+min_temp = 0
+max_temp = 125
+
+[duplicate_pin_override]
+pins = PC0, PC5
+
+[temperature_fan chamber_fan]
+pin = PC0
+cycle_time = 0.0100
+hardware_pwm = false
+max_power = 1
+shutdown_speed = 0
+sensor_type = EPCOS 100K B57560G104F
+sensor_pin = PC5
+min_temp = 0
+max_temp = 70
+control = watermark
+max_delta = 2
+target_temp = 35.0
+max_speed = 1.0
+min_speed = 0.0
+
+[stepper_x]
+step_pin = PC2
+dir_pin = !PB9
+enable_pin = !PC3
+microsteps = 32
+rotation_distance = 40
+endstop_pin = tmc2209_stepper_x:virtual_endstop
+position_endstop = 306.5
+position_min = -2
+position_max = 306.5
+homing_speed = 30
+homing_retract_dist = 0
+
+[tmc2209 stepper_x]
+uart_pin = PA9
+interpolate = True
+run_current = 1.5
+hold_current = 1.0
+sense_resistor = 0.100
+stealthchop_threshold = 0
+uart_address = 3
+diag_pin = ^PB12
+driver_tbl = 0
+driver_toff = 1
+driver_hend = 0
+driver_hstrt = 0
+driver_sgthrs = 75
+
+[stepper_y]
+step_pin = PB8
+dir_pin = !PB7
+enable_pin = !PC3
+microsteps = 32
+rotation_distance = 40
+endstop_pin = tmc2209_stepper_y:virtual_endstop
+position_endstop = -2
+position_min = -2
+position_max = 306
+homing_speed = 30
+homing_retract_dist = 0
+
+[tmc2209 stepper_y]
+uart_pin = PA10
+interpolate = True
+run_current = 1.5
+hold_current = 1.0
+sense_resistor = 0.100
+stealthchop_threshold = 0
+uart_address = 3
+diag_pin = ^PB13
+driver_tbl = 0
+driver_toff = 1
+driver_hend = 0
+driver_hstrt = 0
+driver_sgthrs = 75
+
+[stepper_z]
+step_pin = PB6
+dir_pin = !PB5
+enable_pin = !PC3
+microsteps = 16
+rotation_distance = 8
+gear_ratio = 64:20
+endstop_pin = tmc2209_stepper_z:virtual_endstop
+position_endstop = 0
+position_max = 305
+position_min = -10
+homing_speed = 10
+second_homing_speed = 1
+homing_retract_dist = 2.0
+
+[tmc2209 stepper_z]
+uart_pin = PA11
+uart_address = 3
+run_current = 0.8
+diag_pin = ^PB14
+stealthchop_threshold = 0
+sense_resistor = 0.100
+driver_sgthrs = 0
+
+[extruder]
+max_extrude_only_distance = 1000.0
+max_extrude_cross_section = 80
+step_pin = nozzle_mcu:PB1
+dir_pin = nozzle_mcu:PB0
+enable_pin = !nozzle_mcu:PB2
+microsteps = 16
+rotation_distance = 6.9
+nozzle_diameter = 0.400
+filament_diameter = 1.750
+heater_pin = nozzle_mcu:PB7
+sensor_type = EPCOS 100K B57560G104F
+sensor_pin = nozzle_mcu:PA0
+pressure_advance = 0.04
+pressure_advance_smooth_time = 0.040
+control = pid
+pid_kp = 25.013
+pid_ki = 2.566
+pid_kd = 60.966
+min_temp = 0
+max_temp = 320
+
+[tmc2209 extruder]
+uart_pin = nozzle_mcu:PB11
+tx_pin = nozzle_mcu:PB10
+uart_address = 3
+run_current = 0.55
+sense_resistor = 0.150
+stealthchop_threshold = 0
+
+[heater_bed]
+heater_pin = PC8
+sensor_type = EPCOS 100K B57560G104F
+sensor_pin = PC4
+control = pid
+pid_kp = 37
+pid_ki = 0.18
+pid_kd = 280
+min_temp = 0
+max_temp = 125
+
+[filament_switch_sensor filament_sensor]
+pause_on_runout = true
+switch_pin = !PC15
+runout_gcode = 
+	{% if printer.extruder.can_extrude|lower == 'true' %}
+	G91
+	G0 E30 F600
+	G90
+	{% endif %}
+
+[filament_switch_sensor filament_sensor_2]
+pause_on_runout = true
+switch_pin = !nozzle_mcu:PA10
+
+[multi_pin heater_fans]
+pins = nozzle_mcu:PB5,PB2
+
+[heater_fan hotend_fan]
+pin = multi_pin:heater_fans
+heater = extruder
+heater_temp = 40
+
+[static_digital_output my_fan_output_pins]
+pins = nozzle_mcu: PB6
+
+[output_pin fan0]
+pin = !nozzle_mcu: PB8
+pwm = True
+cycle_time = 0.0100
+hardware_pwm = false
+value = 0.00
+scale = 255
+shutdown_value = 0.0
+
+[output_pin fan1]
+pin = PC0
+pwm = True
+cycle_time = 0.0100
+hardware_pwm = false
+value = 0.00
+scale = 255
+shutdown_value = 0.0
+
+[output_pin fan2]
+pin = PB1
+pwm = True
+cycle_time = 0.0100
+hardware_pwm = false
+value = 0.00
+scale = 255
+shutdown_value = 0.0
+
+[output_pin LED]
+pin = PB0
+pwm = True
+cycle_time = 0.010
+value = 1
+
+[output_pin power]
+pin = PC9
+
+[adxl345]
+cs_pin = nozzle_mcu:PA4
+spi_speed = 5000000
+axes_map = x,-z,y
+spi_software_sclk_pin = nozzle_mcu:PA5
+spi_software_mosi_pin = nozzle_mcu:PA7
+spi_software_miso_pin = nozzle_mcu:PA6
+
+[resonance_tester]
+accel_chip = adxl345
+accel_per_hz = 75
+probe_points = 
+	150,150,10
+
+[prtouch_v2]
+pr_version = 2
+step_base = 2
+z_offset = 0
+noz_ex_com = 0.09
+tilt_corr_dis = 0.05
+tri_min_hold = 6000,10000
+tri_max_hold = 13000,60000
+pres_cnt = 4
+pres0_clk_pins = leveling_mcu:PA7
+pres0_sdo_pins = leveling_mcu:PA4
+pres1_clk_pins = leveling_mcu:PA6
+pres1_sdo_pins = leveling_mcu:PA3
+pres2_clk_pins = leveling_mcu:PA2
+pres2_sdo_pins = leveling_mcu:PA0
+pres3_clk_pins = leveling_mcu:PA5
+pres3_sdo_pins = leveling_mcu:PA1
+show_msg = False
+step_swap_pin = PC10
+pres_swap_pin = leveling_mcu:PB1
+g28_wait_cool_down = true
+pa_clr_down_mm = -0.15
+clr_noz_start_x = 130
+clr_noz_start_y = 303
+clr_noz_len_x = 40
+clr_noz_len_y = 2
+speeds = 2.5,1.0
+tri_hftr_cut = 2,1
+tri_lftr_k1 = 0.50,0.15
+tri_min_hold_1 = 6000,10000
+tri_min_hold_2 = 6000,10000
+tri_min_hold_3 = 6000,10000
+tri_min_hold_4 = 6000,10000
+tri_min_hold_5 = 6000,10000
+tri_min_hold_6 = 6000,10000
+tri_min_hold_7 = 6000,10000
+tri_min_hold_8 = 6000,10000
+tri_min_hold_9 = 6000,10000
+tri_min_hold_10 = 6000,10000
+tri_min_hold_11 = 6000,10000
+tri_min_hold_12 = 6000,10000
+tri_min_hold_13 = 6000,10000
+tri_min_hold_14 = 6000,10000
+tri_min_hold_15 = 6000,10000
+tri_min_hold_16 = 6000,10000
+tri_min_hold_17 = 6000,10000
+tri_min_hold_18 = 6000,10000
+tri_min_hold_19 = 6000,10000
+tri_min_hold_20 = 6000,10000
+tri_min_hold_21 = 6000,10000
+tri_min_hold_22 = 6000,10000
+tri_min_hold_23 = 6000,10000
+tri_min_hold_24 = 6000,10000
+tri_min_hold_25 = 6000,10000
+tri_min_hold_26 = 6000,10000
+tri_min_hold_27 = 6000,10000
+tri_min_hold_28 = 6000,10000
+tri_min_hold_29 = 6000,10000
+tri_min_hold_30 = 6000,10000
+tri_min_hold_31 = 6000,10000
+tri_min_hold_32 = 6000,10000
+tri_min_hold_33 = 6000,10000
+tri_min_hold_34 = 6000,10000
+tri_min_hold_35 = 6000,10000
+tri_min_hold_36 = 6000,10000
+tri_max_hold_1 = 13000,60000
+tri_max_hold_2 = 13000,60000
+tri_max_hold_3 = 13000,60000
+tri_max_hold_4 = 13000,60000
+tri_max_hold_5 = 13000,60000
+tri_max_hold_6 = 13000,60000
+tri_max_hold_7 = 13000,60000
+tri_max_hold_8 = 13000,60000
+tri_max_hold_9 = 13000,60000
+tri_max_hold_10 = 13000,60000
+tri_max_hold_11 = 13000,60000
+tri_max_hold_12 = 13000,60000
+tri_max_hold_13 = 13000,60000
+tri_max_hold_14 = 13000,60000
+tri_max_hold_15 = 13000,60000
+tri_max_hold_16 = 13000,60000
+tri_max_hold_17 = 13000,60000
+tri_max_hold_18 = 13000,60000
+tri_max_hold_19 = 13000,60000
+tri_max_hold_20 = 13000,60000
+tri_max_hold_21 = 13000,60000
+tri_max_hold_22 = 13000,60000
+tri_max_hold_23 = 13000,60000
+tri_max_hold_24 = 13000,60000
+tri_max_hold_25 = 13000,60000
+tri_max_hold_26 = 13000,60000
+tri_max_hold_27 = 13000,60000
+tri_max_hold_28 = 13000,60000
+tri_max_hold_29 = 13000,60000
+tri_max_hold_30 = 13000,60000
+tri_max_hold_31 = 13000,60000
+tri_max_hold_32 = 13000,60000
+tri_max_hold_33 = 13000,60000
+tri_max_hold_34 = 13000,60000
+tri_max_hold_35 = 13000,60000
+tri_max_hold_36 = 13000,60000
+
+[bed_mesh]
+speed = 150
+mesh_min = 5,5
+mesh_max = 295,295
+probe_count = 6,6
+fade_start = 5.0
+fade_end = 50.0
+
+[display_status]
+
+[printer]
+kinematics = corexy
+max_velocity = 800
+max_accel = 20000
+max_accel_to_decel = 20000
+max_z_velocity = 20
+square_corner_velocity = 5.0
+square_corner_max_velocity = 200.0
+max_z_accel = 300
+
+[pause_resume]
+
+[exclude_object]
+=======================
+[INFO] 2020-03-01 20:01:25,374 [root] [extruder:__init__:181] Extruder max_extrude_ratio=33.260135
+[INFO] 2020-03-01 20:01:25,449 [root] [serialhdl:connect_uart:184] mcu 'mcu': Starting serial connect
+[INFO] 2020-03-01 20:01:25,456 [root] [reactor:_dispatch_loop:340] _dispatch_loop current nice = -10
+[INFO] 2020-03-01 20:01:25,461 [root] [reactor:_dispatch_loop:342] _dispatch_loop new nice = -20
+[INFO] 2020-03-01 20:01:25,465 [root] [webhooks:set_client_info:202] webhooks client 1967855936: New connection
+[INFO] 2020-03-01 20:01:25,561 [root] [reactor:_dispatch_loop:340] _dispatch_loop current nice = -20
+[INFO] 2020-03-01 20:01:25,562 [root] [reactor:_dispatch_loop:342] _dispatch_loop new nice = -20
+[INFO] 2020-03-01 20:01:25,635 [root] [serialhdl:_bg_thread:40] mcu 'mcu': current nice = -20
+[INFO] 2020-03-01 20:01:26,559 [root] [mcu:_mcu_identify:828] Loaded MCU 'mcu' 116 commands (1.3.0.40-5-g6977eaff-dirty-20230711_100121-ubuntu / gcc: (15:9-2019-q4-0ubuntu1) 9.2.1 20191025 (release) [ARM/arm-9-branch revision 277599] binutils: (2.34-4ubuntu1+13ubuntu1) 2.34)
+MCU 'mcu' config: ADC_MAX=4095 CLOCK_FREQ=120000000 INITIAL_PINS=PC7,PB0 MCU=gd32f303xe RECEIVE_WINDOW=192 RESERVE_PINS_serial=PA2,PA3 SERIAL_BAUD=230400 STATS_SUMSQ_BASE=256 STEPPER_BOTH_EDGE=1 build_machine_uid=Jul 11 202310:01:16
+[INFO] 2020-03-01 20:01:26,561 [root] [serialhdl:connect_uart:184] mcu 'nozzle_mcu': Starting serial connect
+[INFO] 2020-03-01 20:01:26,717 [root] [serialhdl:_bg_thread:40] mcu 'nozzle_mcu': current nice = -20
+[WARNING] 2020-03-01 20:01:27,581 [root] [serialhdl:handle_default:311] mcu 'nozzle_mcu': got {'count': 137, 'sum': 168881, 'sumsq': 1115490, '#name': 'stats', '#sent_time': 28.462255415666668, '#receive_time': 28.463283360111113}
+[INFO] 2020-03-01 20:01:27,586 [root] [mcu:_mcu_identify:828] Loaded MCU 'nozzle_mcu' 116 commands (1.3.0.40-5-g6977eaff-dirty-20230711_100254-ubuntu / gcc: (15:9-2019-q4-0ubuntu1) 9.2.1 20191025 (release) [ARM/arm-9-branch revision 277599] binutils: (2.34-4ubuntu1+13ubuntu1) 2.34)
+MCU 'nozzle_mcu' config: ADC_MAX=4095 CLOCK_FREQ=120000000 INITIAL_PINS=!PB5,!PB6,!PB7 MCU=gd32f303xb RECEIVE_WINDOW=192 RESERVE_PINS_serial=PA2,PA3 SERIAL_BAUD=230400 STATS_SUMSQ_BASE=256 STEPPER_BOTH_EDGE=1 build_machine_uid=Jul 11 202310:02:50
+[INFO] 2020-03-01 20:01:27,588 [root] [serialhdl:connect_uart:184] mcu 'leveling_mcu': Starting serial connect
+[INFO] 2020-03-01 20:01:27,747 [root] [serialhdl:_bg_thread:40] mcu 'leveling_mcu': current nice = -20
+[INFO] 2020-03-01 20:01:28,689 [root] [mcu:_mcu_identify:828] Loaded MCU 'leveling_mcu' 116 commands (1.3.0.40-5-g6977eaff-dirty-20230711_095416-ubuntu / gcc: (15:9-2019-q4-0ubuntu1) 9.2.1 20191025 (release) [ARM/arm-9-branch revision 277599] binutils: (2.34-4ubuntu1+13ubuntu1) 2.34)
+MCU 'leveling_mcu' config: ADC_MAX=4095 CLOCK_FREQ=72000000 MCU=gd32e230x8 RECEIVE_WINDOW=192 RESERVE_PINS_serial=PA9,PA10 SERIAL_BAUD=230400 STATS_SUMSQ_BASE=256 STEPPER_BOTH_EDGE=1 build_machine_uid=Jul 11 202309:54:12
+[INFO] 2020-03-01 20:01:28,691 [root] [serialhdl:connect_pipe:167] mcu 'rpi': Starting connect
+[INFO] 2020-03-01 20:01:28,709 [root] [serialhdl:_bg_thread:40] mcu 'rpi': current nice = -20
+[INFO] 2020-03-01 20:01:29,417 [root] [mcu:_mcu_identify:828] Loaded MCU 'rpi' 104 commands (v0.11.0-372-gb9ad7605 / gcc: (Ingenic Linux-Release5.1.0-Default(xburst2(fp64)+glibc2.29) 2021.12-22 10:52:10) 7.2.0 binutils: (Ingenic Linux-Release5.1.0.-Default(xburst2(fp64)+glibc2.29) 2021.12-22 08:55:37) 2.27)
+MCU 'rpi' config: ADC_MAX=4095 CLOCK_FREQ=50000000 MCU=linux PCA9685_MAX=4096 PWM_MAX=32768 STATS_SUMSQ_BASE=256 build_machine_uid=May 18 202311:46:31
+[INFO] 2020-03-01 20:01:29,418 [root] [temperature_mcu:_mcu_identify:85] mcu_temperature 'mcu' nominal base=378.658537 slope=-804.878049
+[INFO] 2020-03-01 20:01:29,447 [root] [mcu:_send_config:728] Sending MCU 'mcu' printer configuration...
+[INFO] 2020-03-01 20:01:29,470 [root] [serialhdl:handle_output:308] mcu 'mcu': #output: allocMax=3800 usedMax=0
+[INFO] 2020-03-01 20:01:29,480 [root] [mcu:_connect:801] Configured MCU 'mcu' (3790 moves)
+[INFO] 2020-03-01 20:01:29,489 [root] [mcu:_send_config:728] Sending MCU 'nozzle_mcu' printer configuration...
+[INFO] 2020-03-01 20:01:29,503 [root] [serialhdl:handle_output:308] mcu 'nozzle_mcu': #output: allocMax=1800 usedMax=0
+[INFO] 2020-03-01 20:01:29,508 [root] [mcu:_connect:801] Configured MCU 'nozzle_mcu' (1790 moves)
+[INFO] 2020-03-01 20:01:29,516 [root] [mcu:_send_config:728] Sending MCU 'leveling_mcu' printer configuration...
+[INFO] 2020-03-01 20:01:29,528 [root] [serialhdl:handle_output:308] mcu 'leveling_mcu': #output: allocMax=1203 usedMax=0
+[INFO] 2020-03-01 20:01:29,532 [root] [mcu:_connect:801] Configured MCU 'leveling_mcu' (1193 moves)
+[INFO] 2020-03-01 20:01:29,540 [root] [mcu:_send_config:728] Sending MCU 'rpi' printer configuration...
+[INFO] 2020-03-01 20:01:29,547 [root] [serialhdl:handle_output:308] mcu 'rpi': #output: allocMax=4096 usedMax=0
+[INFO] 2020-03-01 20:01:29,549 [root] [mcu:_connect:801] Configured MCU 'rpi' (4086 moves)
+[INFO] 2020-03-01 20:01:29,551 [root] [verify_heater:handle_connect:40] Starting heater checks for extruder
+[INFO] 2020-03-01 20:01:29,552 [root] [verify_heater:handle_connect:40] Starting heater checks for heater_bed
+[INFO] 2020-03-01 20:01:29,553 [root] [bl24c16f:_init_bl24c16f:228] bl24c16f init...
+[INFO] 2020-03-01 20:01:29,554 [root] [tmc:_handle_connect:384] Enabling TMC virtual enable for 'stepper_x'
+[INFO] 2020-03-01 20:01:29,666 [root] [tmc:_handle_connect:384] Enabling TMC virtual enable for 'stepper_y'
+[INFO] 2020-03-01 20:01:29,774 [root] [tmc:_handle_connect:384] Enabling TMC virtual enable for 'stepper_z'
+[INFO] 2020-03-01 20:01:29,998 [root] [bed_mesh:print_generated_points:430] bed_mesh: generated points
+Index |  Tool Adjusted  |   Probe
+[INFO] 2020-03-01 20:01:29,998 [root] [bed_mesh:print_generated_points:435]   0   | (5.0, 5.0)      | (5.0, 5.0)
+[INFO] 2020-03-01 20:01:29,999 [root] [bed_mesh:print_generated_points:435]   1   | (63.0, 5.0)     | (63.0, 5.0)
+[INFO] 2020-03-01 20:01:30,000 [root] [bed_mesh:print_generated_points:435]   2   | (121.0, 5.0)    | (121.0, 5.0)
+[INFO] 2020-03-01 20:01:30,000 [root] [bed_mesh:print_generated_points:435]   3   | (179.0, 5.0)    | (179.0, 5.0)
+[INFO] 2020-03-01 20:01:30,001 [root] [bed_mesh:print_generated_points:435]   4   | (237.0, 5.0)    | (237.0, 5.0)
+[INFO] 2020-03-01 20:01:30,002 [root] [bed_mesh:print_generated_points:435]   5   | (295.0, 5.0)    | (295.0, 5.0)
+[INFO] 2020-03-01 20:01:30,002 [root] [bed_mesh:print_generated_points:435]   6   | (295.0, 63.0)   | (295.0, 63.0)
+[INFO] 2020-03-01 20:01:30,003 [root] [bed_mesh:print_generated_points:435]   7   | (237.0, 63.0)   | (237.0, 63.0)
+[INFO] 2020-03-01 20:01:30,004 [root] [bed_mesh:print_generated_points:435]   8   | (179.0, 63.0)   | (179.0, 63.0)
+[INFO] 2020-03-01 20:01:30,005 [root] [bed_mesh:print_generated_points:435]   9   | (121.0, 63.0)   | (121.0, 63.0)
+[INFO] 2020-03-01 20:01:30,007 [root] [bed_mesh:print_generated_points:435]   10  | (63.0, 63.0)    | (63.0, 63.0)
+[INFO] 2020-03-01 20:01:30,008 [root] [bed_mesh:print_generated_points:435]   11  | (5.0, 63.0)     | (5.0, 63.0)
+[INFO] 2020-03-01 20:01:30,010 [root] [bed_mesh:print_generated_points:435]   12  | (5.0, 121.0)    | (5.0, 121.0)
+[INFO] 2020-03-01 20:01:30,010 [root] [bed_mesh:print_generated_points:435]   13  | (63.0, 121.0)   | (63.0, 121.0)
+[INFO] 2020-03-01 20:01:30,011 [root] [bed_mesh:print_generated_points:435]   14  | (121.0, 121.0)  | (121.0, 121.0)
+[INFO] 2020-03-01 20:01:30,013 [root] [bed_mesh:print_generated_points:435]   15  | (179.0, 121.0)  | (179.0, 121.0)
+[INFO] 2020-03-01 20:01:30,014 [root] [bed_mesh:print_generated_points:435]   16  | (237.0, 121.0)  | (237.0, 121.0)
+[INFO] 2020-03-01 20:01:30,015 [root] [bed_mesh:print_generated_points:435]   17  | (295.0, 121.0)  | (295.0, 121.0)
+[INFO] 2020-03-01 20:01:30,016 [root] [bed_mesh:print_generated_points:435]   18  | (295.0, 179.0)  | (295.0, 179.0)
+[INFO] 2020-03-01 20:01:30,017 [root] [bed_mesh:print_generated_points:435]   19  | (237.0, 179.0)  | (237.0, 179.0)
+[INFO] 2020-03-01 20:01:30,018 [root] [bed_mesh:print_generated_points:435]   20  | (179.0, 179.0)  | (179.0, 179.0)
+[INFO] 2020-03-01 20:01:30,019 [root] [bed_mesh:print_generated_points:435]   21  | (121.0, 179.0)  | (121.0, 179.0)
+[INFO] 2020-03-01 20:01:30,019 [root] [bed_mesh:print_generated_points:435]   22  | (63.0, 179.0)   | (63.0, 179.0)
+[INFO] 2020-03-01 20:01:30,021 [root] [bed_mesh:print_generated_points:435]   23  | (5.0, 179.0)    | (5.0, 179.0)
+[INFO] 2020-03-01 20:01:30,022 [root] [bed_mesh:print_generated_points:435]   24  | (5.0, 237.0)    | (5.0, 237.0)
+[INFO] 2020-03-01 20:01:30,023 [root] [bed_mesh:print_generated_points:435]   25  | (63.0, 237.0)   | (63.0, 237.0)
+[INFO] 2020-03-01 20:01:30,024 [root] [bed_mesh:print_generated_points:435]   26  | (121.0, 237.0)  | (121.0, 237.0)
+[INFO] 2020-03-01 20:01:30,025 [root] [bed_mesh:print_generated_points:435]   27  | (179.0, 237.0)  | (179.0, 237.0)
+[INFO] 2020-03-01 20:01:30,026 [root] [bed_mesh:print_generated_points:435]   28  | (237.0, 237.0)  | (237.0, 237.0)
+[INFO] 2020-03-01 20:01:30,027 [root] [bed_mesh:print_generated_points:435]   29  | (295.0, 237.0)  | (295.0, 237.0)
+[INFO] 2020-03-01 20:01:30,028 [root] [bed_mesh:print_generated_points:435]   30  | (295.0, 295.0)  | (295.0, 295.0)
+[INFO] 2020-03-01 20:01:30,029 [root] [bed_mesh:print_generated_points:435]   31  | (237.0, 295.0)  | (237.0, 295.0)
+[INFO] 2020-03-01 20:01:30,030 [root] [bed_mesh:print_generated_points:435]   32  | (179.0, 295.0)  | (179.0, 295.0)
+[INFO] 2020-03-01 20:01:30,030 [root] [bed_mesh:print_generated_points:435]   33  | (121.0, 295.0)  | (121.0, 295.0)
+[INFO] 2020-03-01 20:01:30,031 [root] [bed_mesh:print_generated_points:435]   34  | (63.0, 295.0)   | (63.0, 295.0)
+[INFO] 2020-03-01 20:01:30,032 [root] [bed_mesh:print_generated_points:435]   35  | (5.0, 295.0)    | (5.0, 295.0)
+[INFO] 2020-03-01 20:01:30,102 [root] [statistics:generate_stats:68] Stats 31.0: gcodein=0  mcu: mcu_awake=0.001 mcu_task_avg=0.000010 mcu_task_stddev=0.000006 bytes_write=2117 bytes_read=5528 bytes_retransmit=9 bytes_invalid=0 send_seq=198 receive_seq=198 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119989950 nozzle_mcu: mcu_awake=0.000 mcu_task_avg=0.000000 mcu_task_stddev=0.000000 bytes_write=1301 bytes_read=4740 bytes_retransmit=0 bytes_invalid=0 send_seq=141 receive_seq=141 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119997946 adj=120024660 leveling_mcu: mcu_awake=0.000 mcu_task_avg=0.000000 mcu_task_stddev=0.000000 bytes_write=804 bytes_read=4371 bytes_retransmit=9 bytes_invalid=0 send_seq=107 receive_seq=107 retransmit_seq=17 srtt=0.002 rttvar=0.001 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71886931 adj=71998004 rpi: mcu_awake=0.000 mcu_task_avg=0.000000 mcu_task_stddev=0.000000 bytes_write=894 bytes_read=4505 bytes_retransmit=0 bytes_invalid=0 send_seq=117 receive_seq=117 retransmit_seq=0 srtt=0.000 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=50000834 adj=50007564  mcu_temp: temp=0.0 chamber_temp: temp=0.0 heater_bed: target=0 temp=0.0 pwm=0.000 sysload=0.66 cputime=11.914 memavail=160720 print_time=0.001 buffer_time=0.000 print_stall=0 extruder: target=0 temp=0.0 pwm=0.000
+[INFO] 2020-03-01 20:01:31,214 [root] [webhooks:set_client_info:202] webhooks client 1967855936: Client info {'program': 'c440x', 'version': '1.3.3.36'}
+[INFO] 2020-03-01 20:01:31,432 [root] [webhooks:_handle_rpc_registration:384] webhooks: registering remote method 'shutdown_machine' for connection id: 1967855936
+[INFO] 2020-03-01 20:01:31,539 [root] [webhooks:_handle_rpc_registration:384] webhooks: registering remote method 'reboot_machine' for connection id: 1967855936
+[INFO] 2020-03-01 20:01:31,647 [root] [webhooks:_handle_rpc_registration:384] webhooks: registering remote method 'pause_job_queue' for connection id: 1967855936
+[INFO] 2020-03-01 20:01:31,751 [root] [webhooks:_handle_rpc_registration:384] webhooks: registering remote method 'start_job_queue' for connection id: 1967855936
+[INFO] 2020-03-01 20:01:31,856 [root] [webhooks:_handle_rpc_registration:384] webhooks: registering remote method 'timelapse_newframe' for connection id: 1967855936
+[INFO] 2020-03-01 20:01:31,962 [root] [webhooks:_handle_rpc_registration:384] webhooks: registering remote method 'timelapse_saveFrames' for connection id: 1967855936
+[INFO] 2020-03-01 20:01:32,066 [root] [webhooks:_handle_rpc_registration:384] webhooks: registering remote method 'timelapse_render' for connection id: 1967855936
+[ERROR] 2020-03-01 20:01:32,275 [root] [bed_mesh:_get_mesh:145] 'NoneType' object has no attribute 'get_probed_matrix'
+[INFO] 2020-03-01 20:01:32,789 [root] [webhooks:_handle_query:530] _handle_query objects/subscribe:{'webhooks': None, 'configfile': None, 'mcu': None, 'mcu nozzle_mcu': None, 'mcu leveling_mcu': None, 'mcu rpi': None, 'gcode_macro xyz_ready': None, 'gcode_macro _IF_HOME_Z': None, 'gcode_macro _IF_MOVE_XY': None, 'gcode_macro _HOME_X': None, 'gcode_macro _HOME_Y': None, 'gcode_macro _HOME_Z': None, 'gcode_macro PRINTER_PARAM': None, 'gcode_macro AUTOTUNE_SHAPERS': None, 'gcode_macro LOAD_MATERIAL_CLOSE_FAN2': None, 'gcode_macro LOAD_MATERIAL_RESTORE_FAN2': None, 'gcode_macro SET_E_MIN_CURRENT': None, 'gcode_macro RESTORE_E_CURRENT': None, 'gcode_macro LOAD_MATERIAL': None, 'gcode_macro QUIT_MATERIAL': None, 'gcode_macro Qmode': None, 'gcode_macro Qmode_exit': None, 'gcode_macro M204': None, 'gcode_macro M205': None, 'gcode_macro M106': None, 'gcode_macro M107': None, 'gcode_macro M141': None, 'gcode_macro M900': None, 'gcode_macro WAIT_TEMP_START': None, 'gcode_macro WAIT_TEMP_END': None, 'gcode_macro PRINT_CALIBRATION': None, 'gcode_macro FIRST_FLOOR_PAUSE_POSITION': None, 'gcode_macro ACCURATE_G28': None, 'gcode_macro START_PRINT': None, 'gcode_macro PRINT_PREPARED': None, 'gcode_macro PRINT_PREPARE_CLEAR': None, 'gcode_macro END_PRINT_POINT_WITHOUT_LIFTING': None, 'gcode_macro END_PRINT_POINT': None, 'gcode_macro END_PRINT': None, 'gcode_macro FIRST_FLOOR_PAUSE': None, 'gcode_macro FIRST_FLOOR_RESUME': None, 'gcode_macro PAUSE': None, 'gcode_macro INPUTSHAPER': None, 'gcode_macro BEDPID': None, 'gcode_macro TUNOFFINPUTSHAPER': None, 'gcode_macro RESUME': None, 'gcode_macro CANCEL_PRINT': None, 'gcode_macro G29': None, 'gcode_move': None, 'print_stats': None, 'fan_feedback': None, 'custom_macro': None, 'idle_timeout': None, 'virtual_sdcard': None, 'heaters': None, 'temperature_sensor mcu_temp': None, 'temperature_sensor chamber_temp': None, 'temperature_fan chamber_fan': None, 'tmc2209 stepper_x': None, 'tmc2209 stepper_y': None, 'tmc2209 stepper_z': None, 'tmc2209 extruder': None, 'heater_bed': None, 'pause_resume': None, 'filament_switch_sensor filament_sensor': None, 'filament_switch_sensor filament_sensor_2': None, 'heater_fan hotend_fan': None, 'output_pin fan0': None, 'output_pin fan1': None, 'output_pin fan2': None, 'output_pin LED': None, 'output_pin power': None, 'probe': None, 'bed_mesh': None, 'display_status': None, 'exclude_object': None, 'motion_report': None, 'query_endstops': None, 'system_stats': None, 'manual_probe': None, 'toolhead': None, 'extruder': None}
+[INFO] 2020-03-01 20:01:32,791 [root] [webhooks:_handle_query:552] _handle_query before complete.wait
+[INFO] 2020-03-01 20:01:32,826 [root] [webhooks:_handle_query:554] _handle_query after complete.wait:{'eventtime': 33.675859333, 'status': {'webhooks': {'state': 'ready', 'state_message': 'Printer is ready'}, 'configfile': {'config': {'force_move': {'enable_force_move': 'true'}, 'gcode_macro xyz_ready': {'variable_x_ready': '0', 'variable_y_ready': '0', 'variable_z_ready': '0', 'variable_xy_moved': '0', 'variable_z_moved': '0', 'variable_safe_z': '3', 'gcode': ''}, 'gcode_macro _IF_HOME_Z': {'gcode': '\n{% if printer[\'gcode_macro xyz_ready\'].z_ready|int == 1 %}\n{% if printer.toolhead.position.z|int < 5 %}\n{% set z_park = 5.0 - printer.toolhead.position.z|int %}\nG91\nG1 z{z_park} F600\nG90\n{% endif %}\n{% else %}\n{% if printer[\'gcode_macro xyz_ready\'].z_moved|int == 0 %}\n{% if printer.print_stats.z_pos|float <= 20.0 or printer.print_stats.power_loss == 1 %}\nFORCE_MOVE STEPPER=stepper_z DISTANCE={printer["gcode_macro PRINTER_PARAM"].z_safe_g28} VELOCITY=10\n{% else %}\nFORCE_MOVE STEPPER=stepper_z DISTANCE=0.1 VELOCITY=10\n{% endif %}\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=z_moved VALUE=1\n{% endif %}\n{% endif %}'}, 'gcode_macro _IF_MOVE_XY': {'gcode': '\n_IF_HOME_Z\n{% if printer[\'gcode_macro xyz_ready\'].xy_moved|int == 0 %}\n{action_respond_info("move xy\\n")}\n\nFORCE_MOVE STEPPER=stepper_y DISTANCE=-14 VELOCITY=50\nFORCE_MOVE STEPPER=stepper_y DISTANCE=7 VELOCITY=50\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=xy_moved VALUE=1\nG4 P1000\n{% endif %}'}, 'gcode_macro _HOME_X': {'gcode': "\n_IF_MOVE_XY\n\n{% if printer['gcode_macro xyz_ready'].x_ready|int == 1 %}\n{% if (printer.configfile.settings['stepper_x'].position_max - printer.toolhead.position.x)|round < 10 %}\n{% set x_park = (10 - (printer.configfile.settings['stepper_x'].position_max - printer.toolhead.position.x))|round %}\n{% if x_park > 0 %}\nG91\nG1 x-{x_park} F3600\nG90\nG4 P1000\n{% endif %}\n{% endif %}\n{% endif %}\n\n\n\n\nG28 X\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=x_ready VALUE=1\n\nG91\nG1 x-10 F3600\nG90\n\nG4 P2000"}, 'gcode_macro _HOME_Y': {'gcode': "\n_IF_MOVE_XY\n\n{% if printer['gcode_macro xyz_ready'].y_ready|int == 1 %}\n{% if printer.toolhead.position.y|round < 8 %}\n{% set y_park = 8 - printer.toolhead.position.y|round %}\n{% if y_park > 0 %}\nG91\nG1 y{y_park} F3600\nG90\nG4 P1000\n{% endif %}\n{% endif %}\n{% endif %}\n\n\n\n\nG28 Y\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=y_ready VALUE=1\n\nG91\nG1 y10 F3600\nG90\n\nG4 P2000"}, 'gcode_macro _HOME_Z': {'gcode': '\n{% if printer[\'gcode_macro xyz_ready\'].y_ready|int == 1 %}\n{% if printer[\'gcode_macro xyz_ready\'].x_ready|int == 1 %}\n_IF_HOME_Z\n{% endif %}\n{% endif %}\n{% if printer.print_stats.z_pos|float >= 260.0 %}\nFORCE_MOVE STEPPER=stepper_z DISTANCE=-8 VELOCITY=10\n{% endif %}\n\n{% set POSITION_X = printer.configfile.settings[\'stepper_x\'].position_max/2 %}\n{% set POSITION_Y = printer.configfile.settings[\'stepper_y\'].position_max/2 %}\n\nG91\n{% set x_park = POSITION_X - printer.toolhead.position.x|int %}\n{% set y_park = POSITION_Y - printer.toolhead.position.y|int %}\n{action_respond_info("x_park = %s \\n" % (x_park))}\n{action_respond_info("y_park = %s \\n" % (y_park))}\nG1 x{x_park} y{y_park} F3600\nG90\n\n\nG28 Z\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=z_ready VALUE=1'}, 'homing_override': {'axes': 'xyz', 'gcode': '\nM220 S100\n\n\n\n{% set x_axes = printer.toolhead.homed_axes %}\n{% if x_axes is defined and x_axes[0] is defined %}\n{action_respond_info(\n"x_axes: %s \\n"\n% (x_axes))}\n{% else %}\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=x_ready VALUE=0\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=y_ready VALUE=0\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=z_ready VALUE=0\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=xy_moved VALUE=0\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=z_moved VALUE=0\n{action_respond_info(\n"x_axes is NULL\\n")}\n{% endif %}\n\n{% if x_axes is not defined or x_axes[2] is not defined %}\nBED_MESH_CLEAR\n{% endif %}\n\n{% if x_axes is defined and x_axes[0] is defined and x_axes[1] is defined %}\n{action_respond_info("x_axes: %s \\n"% (x_axes))}\n{% set position_y = printer.toolhead.position.y|int %}\n{% set max_y_position = printer["gcode_macro PRINTER_PARAM"].max_y_position|int %}\n{% if position_y >= max_y_position %}\nG91\nG0 Y-10 F3600\nG90\n{% endif %}\n{% endif %}\n\n{% set home_all = \'X\' not in params and \'Y\' not in params %}\n{% if \'Z\' in params and \'X\' not in params and \'Y\' not in params %}\n{% if x_axes[0] is defined and x_axes[1] is defined %}\n{% set home_all = 0 %}\n{% endif %}\n{% endif %}\n\n{% if home_all or \'X\' in params %}\n_HOME_X\n{% endif %}\n\n{% if home_all or \'Y\' in params %}\n_HOME_Y\n{% endif %}\n\n{% if home_all or \'X\' in params %}\n_HOME_X\n{% endif %}\n\n{% if home_all or \'Y\' in params %}\n_HOME_Y\n{% endif %}\n\n{% if home_all or \'Z\' in params %}\n_HOME_Z\n{% endif %}\nBED_MESH_PROFILE LOAD="default"\n\n\n\n\nG4 P500'}, 'gcode_macro PRINTER_PARAM': {'variable_z_safe_pause': '0.0', 'variable_z_safe_g28': '3.0', 'variable_max_x_position': '300.0', 'variable_max_y_position': '300.0', 'variable_max_z_position': '300.0', 'variable_fans': '3', 'variable_auto_g29': '0', 'variable_fan0_min': '25', 'variable_fan1_min': '50', 'variable_fan2_min': '180', 'variable_fan2_speed': '0', 'variable_hotend_temp': '0', 'variable_e_min_current': '0.27', 'variable_cam_off_temp': '60', 'gcode': ''}, 'gcode_macro AUTOTUNE_SHAPERS': {'variable_autotune_shapers': "'ei'", 'gcode': ''}, 'gcode_macro LOAD_MATERIAL_CLOSE_FAN2': {'variable_fan2_value': '0', 'gcode': "\nSAVE_GCODE_STATE NAME=myMoveState\n{% if printer['output_pin fan2'].value > 0.0 %}\nSET_GCODE_VARIABLE MACRO=LOAD_MATERIAL_CLOSE_FAN2 VARIABLE=fan2_value VALUE={printer['output_pin fan2'].value}\nM107 P2\n{% endif %}\nRESTORE_E_CURRENT"}, 'gcode_macro LOAD_MATERIAL_RESTORE_FAN2': {'gcode': '\n{% set fan2_value = printer[\'gcode_macro LOAD_MATERIAL_CLOSE_FAN2\'].fan2_value|float %}\nRESTORE_GCODE_STATE NAME=myMoveState\n{% if fan2_value > 0.0 %}\n{% set s_value = (fan2_value * 255 - printer["gcode_macro PRINTER_PARAM"].fan2_min) * 255 / (255 - printer["gcode_macro PRINTER_PARAM"].fan2_min) %}\nM106 P2 S{s_value}\nSET_GCODE_VARIABLE MACRO=LOAD_MATERIAL_CLOSE_FAN2 VARIABLE=fan2_value VALUE=0\n{% endif %}\nSET_E_MIN_CURRENT'}, 'gcode_macro SET_E_MIN_CURRENT': {'gcode': "\n{% set e_current = printer['gcode_macro PRINTER_PARAM'].e_min_current %}\nM400\nSET_TMC_CURRENT STEPPER=extruder CURRENT={e_current} HOLDCURRENT={e_current}\nG4 P2000"}, 'gcode_macro RESTORE_E_CURRENT': {'gcode': "\n{% set e_current = printer.configfile.settings['tmc2209 extruder'].run_current %}\nM400\nSET_TMC_CURRENT STEPPER=extruder CURRENT={e_current} HOLDCURRENT={e_current}\nG4 P2000"}, 'gcode_macro LOAD_MATERIAL': {'gcode': '\nLOAD_MATERIAL_CLOSE_FAN2\nM109 S{printer.custom_macro.default_extruder_temp}\nG91\nG1 E80 F180\nLOAD_MATERIAL_RESTORE_FAN2'}, 'gcode_macro QUIT_MATERIAL': {'gcode': '\nSAVE_GCODE_STATE NAME=myMoveState\nRESTORE_E_CURRENT\nM109 S{printer.custom_macro.default_extruder_temp}\nM83\nG1 E100 F300\nG1 E-15 F3000\nG1 E-22.4700 F2400\nG1 E-6.4200 F1200\nG1 E-3.2100 F720\nG1 E5.0000 F356\nG1 E-5.0000 F384\nG1 E5.0000 F412\nG1 E-5.0000 F440\nG1 E5.0000 F467\nG1 E-5.0000 F495\nG1 E5.0000 F523\nG1 E-5.0000 F3000\nG1 E-15 F3000\nSET_E_MIN_CURRENT\nRESTORE_GCODE_STATE NAME=myMoveState'}, 'gcode_macro Qmode': {'variable_flag': '0', 'variable_accel': '0', 'variable_accel_to_decel': '0', 'variable_velocity': '0', 'variable_square_corner_velocity': '0', 'variable_pressure_advance': '0.0', 'variable_fan0_value': '0.00', 'variable_fan1_value': '0.00', 'variable_fan2_value': '0.00', 'variable_speed_factor': '0', 'variable_max_accel': '2500', 'variable_max_accel_to_decel': '2500', 'gcode': '\n{% set printer_state = printer.print_stats.state %}\n{% if printer[\'gcode_macro Qmode\'].flag|int == 0 %}\n{% if printer_state == "printing" or printer_state == "paused" %}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=accel VALUE={printer.toolhead.max_accel}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=accel_to_decel VALUE={printer.toolhead.max_accel_to_decel}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=velocity VALUE={printer.toolhead.max_velocity}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=square_corner_velocity VALUE={printer.toolhead.square_corner_velocity}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=pressure_advance VALUE={printer.extruder.pressure_advance}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=speed_factor VALUE={printer.gcode_move.speed_factor}\nSET_TMC_FIELD STEPPER=stepper_x FIELD=en_spreadcycle VALUE=0\nSET_TMC_FIELD STEPPER=stepper_y FIELD=en_spreadcycle VALUE=0\nSET_TMC_CURRENT STEPPER=stepper_x CURRENT=1.0\nSET_TMC_CURRENT STEPPER=stepper_y CURRENT=1.0\nG4 P1000\n\n\nSET_VELOCITY_LIMIT ACCEL=2500\nSET_VELOCITY_LIMIT ACCEL_TO_DECEL=2500\nSET_VELOCITY_LIMIT VELOCITY=150\nSET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY=5\nSET_PRESSURE_ADVANCE ADVANCE=0.05\nM220 S50\n\n{% set tmp = printer[\'output_pin fan0\'].value * 255 %}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan0_value VALUE={tmp}\n{% if tmp - printer[\'gcode_macro PRINTER_PARAM\'].fan0_min > (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan0_min) / 2 %}\n{% set tmp = printer[\'gcode_macro PRINTER_PARAM\'].fan0_min + (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan0_min) / 2 %}\nSET_PIN PIN=fan0 VALUE={tmp}\n{% endif %}\n\n{% set tmp = printer[\'output_pin fan1\'].value * 255 %}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan1_value VALUE={printer[\'output_pin fan1\'].value * 255}\n{% if tmp - printer[\'gcode_macro PRINTER_PARAM\'].fan1_min > (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan1_min) / 2 %}\n{% set tmp = printer[\'gcode_macro PRINTER_PARAM\'].fan1_min + (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan1_min) / 2 %}\nSET_PIN PIN=fan1 VALUE={tmp}\n{% endif %}\n\n{% set tmp = printer[\'output_pin fan2\'].value * 255 %}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan2_value VALUE={printer[\'output_pin fan2\'].value * 255}\n{% if tmp - printer[\'gcode_macro PRINTER_PARAM\'].fan2_min > (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan2_min) / 2 %}\n{% set tmp = printer[\'gcode_macro PRINTER_PARAM\'].fan2_min + (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan2_min) / 2 %}\nSET_PIN PIN=fan2 VALUE={tmp}\n{% endif %}\n\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=flag VALUE=1\nSET_QMODE_FLAG FLAG=1\n{% endif %}\n{% endif %}'}, 'gcode_macro Qmode_exit': {'gcode': '\n{% set printer_state = printer.print_stats.state %}\n{% if printer[\'gcode_macro Qmode\'].flag|int == 1 %}\n{% if printer_state == "printing" or printer_state == "paused" %}\nSET_VELOCITY_LIMIT ACCEL={printer[\'gcode_macro Qmode\'].accel}\nSET_VELOCITY_LIMIT ACCEL_TO_DECEL={printer[\'gcode_macro Qmode\'].accel_to_decel}\nSET_VELOCITY_LIMIT VELOCITY={printer[\'gcode_macro Qmode\'].velocity}\nSET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY={printer[\'gcode_macro Qmode\'].square_corner_velocity}\nSET_PRESSURE_ADVANCE ADVANCE={printer[\'gcode_macro Qmode\'].pressure_advance}\nM220 S{printer[\'gcode_macro Qmode\'].speed_factor * 100}\n\n{% set X_RUN_CUR = printer.configfile.settings[\'tmc2209 stepper_x\'].run_current %}\n{% set Y_RUN_CUR = printer.configfile.settings[\'tmc2209 stepper_y\'].run_current %}\nSET_TMC_CURRENT STEPPER=stepper_x CURRENT={X_RUN_CUR}\nSET_TMC_CURRENT STEPPER=stepper_y CURRENT={Y_RUN_CUR}\nSET_TMC_FIELD STEPPER=stepper_x FIELD=en_spreadcycle VALUE=1\nSET_TMC_FIELD STEPPER=stepper_y FIELD=en_spreadcycle VALUE=1\nG4 P1000\n\n{% if printer[\'output_pin fan0\'].value != 0 %}\n{action_respond_info("fan0_value = %s" % printer[\'gcode_macro Qmode\'].fan0_value)}\nSET_PIN PIN=fan0 VALUE={printer[\'gcode_macro Qmode\'].fan0_value}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan0_value VALUE=0\n{% endif %}\n{% if printer[\'output_pin fan1\'].value != 0 %}\n{action_respond_info("fan1_value = %s" % printer[\'gcode_macro Qmode\'].fan1_value)}\nSET_PIN PIN=fan1 VALUE={printer[\'gcode_macro Qmode\'].fan1_value}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan1_value VALUE=0\n{% endif %}\n{% if printer[\'output_pin fan2\'].value != 0 %}\n{action_respond_info("fan2_value = %s" % printer[\'gcode_macro Qmode\'].fan2_value)}\nSET_PIN PIN=fan2 VALUE={printer[\'gcode_macro Qmode\'].fan2_value}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan2_value VALUE=0\n{% endif %}\n\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=flag VALUE=0\nSET_QMODE_FLAG FLAG=0\n{% endif %}\n{% endif %}'}, 'gcode_macro M204': {'rename_existing': 'M204.1', 'gcode': '\n\n{% set get_params = "" %}\n{% set qmode_max_accel = printer[\'gcode_macro Qmode\'].max_accel|string %}\n{% if \'S\' in params|upper %}\n{% if printer[\'gcode_macro Qmode\'].flag|int == 1 and params.S|float > qmode_max_accel|float %}\n{% set get_params = (get_params + \' \' + \'S\' + qmode_max_accel) %}\n{% else %}\n{% set get_params = (get_params + \' \' + \'S\' + params.S) %}\n{% endif %}\n{% endif %}\n{% if \'P\' in params|upper %}\n{% if printer[\'gcode_macro Qmode\'].flag|int == 1 and params.P|float > qmode_max_accel|float %}\n{% set get_params = (get_params + \' \' + \'P\' + qmode_max_accel) %}\n{% else %}\n{% set get_params = (get_params + \' \' + \'P\' + params.P) %}\n{% endif %}\n{% endif %}\n{% if \'T\' in params|upper %}\n{% if printer[\'gcode_macro Qmode\'].flag|int == 1 and params.T|float > qmode_max_accel|float %}\n{% set get_params = (get_params + \' \' + \'T\' + qmode_max_accel) %}\n{% else %}\n{% set get_params = (get_params + \' \' + \'T\' + params.T) %}\n{% endif %}\n{% endif %}\nM204.1 {get_params}'}, 'gcode_macro M205': {'gcode': "\n{% if 'X' in params %}\nSET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY={params.X}\n{% elif 'Y' in params %}\nSET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY={params.Y}\n{% endif %}"}, 'gcode_macro M106': {'gcode': '\n{% set fans = printer["gcode_macro PRINTER_PARAM"].fans|int %}\n{% set fan = 0 %}\n{% set value = 0 %}\n{% if params.P is defined %}\n{% set tmp = params.P|int %}\n{% if tmp < fans %}\n{% set fan = tmp %}\n{% endif %}\n{% endif %}\n{% if params.S is defined %}\n{% set tmp = params.S|float %}\n{% else %}\n{% set tmp = 255 %}\n{% endif %}\n{% if tmp > 0 %}\n{% if fan == 0 %}\n{% set value = (255 - printer["gcode_macro PRINTER_PARAM"].fan0_min) / 255 * tmp %}\n{% if printer[\'gcode_macro Qmode\'].flag | int == 1 %}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan0_value VALUE={printer["gcode_macro PRINTER_PARAM"].fan0_min + value}\n{% if value > (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan0_min) / 2  %}\n{% set value = printer["gcode_macro PRINTER_PARAM"].fan0_min + (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan0_min) / 2 %}\n{% else %}\n{% set value = printer["gcode_macro PRINTER_PARAM"].fan0_min + value %}\n{% endif %}\n{% else %}\n{% set value = printer["gcode_macro PRINTER_PARAM"].fan0_min + value %}\n{% endif %}\n{% endif %}\n{% if fan == 1 %}\n{% set value = (255 - printer["gcode_macro PRINTER_PARAM"].fan1_min) / 255 * tmp %}\n{% if printer[\'gcode_macro Qmode\'].flag | int == 1 %}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan1_value VALUE={printer["gcode_macro PRINTER_PARAM"].fan1_min + value}\n{% if value > (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan1_min) / 2  %}\n{% set value = printer["gcode_macro PRINTER_PARAM"].fan1_min + (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan1_min) / 2 %}\n{% else %}\n{% set value = printer["gcode_macro PRINTER_PARAM"].fan1_min + value %}\n{% endif %}\n{% else %}\n{% set value = printer["gcode_macro PRINTER_PARAM"].fan1_min + value %}\n{% endif %}\n{% endif %}\n{% if fan == 2 %}\n{% set value = (255 - printer["gcode_macro PRINTER_PARAM"].fan2_min) / 255 * tmp %}\n{% if printer[\'gcode_macro Qmode\'].flag | int == 1 %}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan2_value VALUE={printer["gcode_macro PRINTER_PARAM"].fan2_min + value}\n{% if value > (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan2_min) / 2  %}\n{% set value = printer["gcode_macro PRINTER_PARAM"].fan2_min + (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan2_min) / 2 %}\n{% else %}\n{% set value = printer["gcode_macro PRINTER_PARAM"].fan2_min + value %}\n{% endif %}\n{% else %}\n{% set value = printer["gcode_macro PRINTER_PARAM"].fan2_min + value %}\n{% endif %}\n{% endif %}\n{% endif %}\n{% if value >= 255 %}\n{% set value = 255 %}\n{% endif %}\nSET_PIN PIN=fan{fan} VALUE={value}'}, 'gcode_macro M107': {'gcode': '\n{% set fans = printer["gcode_macro PRINTER_PARAM"].fans|int %}\n{% if params.P is defined %}\n{% if params.P|int < fans %}\nSET_PIN PIN=fan{params.P|int} VALUE=0\n{% else %}\nSET_PIN PIN=fan0 VALUE=0\n{% endif %}\n{% else %}\nSET_PIN PIN=fan0 VALUE=0\nSET_PIN PIN=fan2 VALUE=0\n{% endif %}'}, 'gcode_macro M141': {'description': 'Set Chamber temperature with slicers', 'gcode': '\n{% if \'S\' in params|upper %}\n{% if printer["temperature_fan chamber_fan"].speed > 0.0 %}\nSET_PIN PIN=fan1 VALUE=255\n{% else %}\nSET_PIN PIN=fan1 VALUE=0\n{% endif %}\n{% if params.S|int > 0 %}\nSET_TEMPERATURE_FAN_TARGET TEMPERATURE_FAN=chamber_fan TARGET={params.S|default(35)}\n{% else %}\nSET_TEMPERATURE_FAN_TARGET TEMPERATURE_FAN=chamber_fan TARGET=35\n{% if params.S|int == 0 %}\nSET_PIN PIN=fan1 VALUE=0\n{% endif %}\n{% endif %}\n{% endif %}'}, 'gcode_macro M900': {'gcode': "\n{% if 'K' in params %}\n{% if 'E' in params %}\nSET_PRESSURE_ADVANCE EXTRUDER={params.E} ADVANCE={params.K}\n{% else %}\nSET_PRESSURE_ADVANCE ADVANCE={params.K}\n{% endif %}\n{% endif %}"}, 'delayed_gcode wait_temp': {'gcode': '\n{% set cur_temp = printer.extruder.temperature %}\n{% if cur_temp|int < 40 %}\nWAIT_TEMP_END\n{% else %}\nUPDATE_DELAYED_GCODE ID=wait_temp DURATION=5\n{% endif %}'}, 'gcode_macro WAIT_TEMP_START': {'gcode': '\n{action_respond_info("wait temp start\\n")}\nUPDATE_DELAYED_GCODE ID=wait_temp DURATION=1\nM106 P0 S255'}, 'gcode_macro WAIT_TEMP_END': {'gcode': '\n{action_respond_info("wait temp end\\n")}\nUPDATE_DELAYED_GCODE ID=wait_temp DURATION=0\nM106 P0 S0'}, 'gcode_macro PRINT_CALIBRATION': {'gcode': '\nCX_PRINT_LEVELING_CALIBRATION'}, 'gcode_macro FIRST_FLOOR_PAUSE_POSITION': {'gcode': "\n{% set extruder_temp = printer.custom_macro.g28_ext_temp %}\nM104 S{extruder_temp}\n{% set y_park = printer.toolhead.axis_maximum.y/2 %}\n{% set x_park = printer['gcode_macro PRINTER_PARAM'].max_x_position|float + 1 %}\nG90\nG1 Z2 F600\nG1 X{x_park} Y{y_park} F6000\nG1 Z0.2 F600"}, 'gcode_macro ACCURATE_G28': {'gcode': '\nACCURATE_HOME_Z'}, 'gcode_macro START_PRINT': {'variable_prepare': '0', 'gcode': '\nWAIT_TEMP_END\nCLEAR_PAUSE\n{% set g28_extruder_temp = printer.custom_macro.g28_ext_temp %}\n{% set bed_temp = printer.custom_macro.default_bed_temp %}\n{% set extruder_temp = printer.custom_macro.default_extruder_temp %}\n\n{% if \'BED_TEMP\' in params|upper and (params.BED_TEMP|float) %}\n{% set bed_temp = params.BED_TEMP %}\n{% endif %}\n\n{% if \'EXTRUDER_TEMP\' in params|upper and (params.EXTRUDER_TEMP|float) %}\n{% set extruder_temp = params.EXTRUDER_TEMP %}\n{% endif %}\n\n{% if printer[\'gcode_macro START_PRINT\'].prepare|int == 0 %}\n{action_respond_info("not prepare.\\n")}\nPRINT_PREPARE_CLEAR\nCX_ROUGH_G28 EXTRUDER_TEMP={extruder_temp} BED_TEMP={bed_temp}\nCX_NOZZLE_CLEAR\nACCURATE_G28\nCX_PRINT_LEVELING_CALIBRATION\n{% else %}\nPRINT_PREPARE_CLEAR\n{% endif %}\n\nCX_PRINT_DRAW_ONE_LINE'}, 'gcode_macro PRINT_PREPARED': {'gcode': '\nSET_GCODE_VARIABLE MACRO=START_PRINT VARIABLE=prepare VALUE=1\n{action_respond_info("print prepared")}'}, 'gcode_macro PRINT_PREPARE_CLEAR': {'gcode': '\nSET_GCODE_VARIABLE MACRO=START_PRINT VARIABLE=prepare VALUE=0'}, 'gcode_macro END_PRINT_POINT_WITHOUT_LIFTING': {'gcode': '\n{% if "xyz" in printer.toolhead.homed_axes %}\n{% set E = printer["gcode_macro PAUSE"].extrude|float %}\nG91\n{% if printer.extruder.can_extrude|lower == \'true\' %}\nG1 E-1.0 F180\nG1 E-{E} F4000\n{% else %}\n{action_respond_info("Extruder not hot enough")}\n{% endif %}\nG1 Z2.0 F600\nG90\n{% set y_park = printer.toolhead.axis_maximum.y/2 %}\n{% set x_park = printer.toolhead.axis_maximum.x|float - 10.0 %}\nG1 X{x_park} Y{y_park} F30000\n{% else %}\n{action_respond_info("end print xyz_axes is NULL\\n")}\n{% endif %}'}, 'gcode_macro END_PRINT_POINT': {'gcode': '\n{% if "xyz" in printer.toolhead.homed_axes %}\n{% set E = printer["gcode_macro PAUSE"].extrude|float %}\n{% set max_z = printer["gcode_macro PRINTER_PARAM"].max_z_position|float %}\n{% set act_z = printer.toolhead.position.z|float %}\n{% set z_safe = 0.0 %}\n{% if act_z < (max_z / 2) %}\n{% set z_safe = (max_z / 2) - act_z %}\n{% elif act_z < max_z %}\n{% set z_safe = 2.0 %}\n{% endif %}\nG91\n{% if printer.extruder.can_extrude|lower == \'true\' %}\nG1 E-1.0 F180\nG1 E-{E} F4000\n{% else %}\n{action_respond_info("Extruder not hot enough")}\n{% endif %}\nG1 Z2.0 F600\nG90\n{% set y_park = printer.toolhead.axis_maximum.y/2 %}\n{% set x_park = printer.toolhead.axis_maximum.x|float - 10.0 %}\nG1 X{x_park} Y{y_park} F30000\n{% if z_safe > 2.0 %}\nG91\n{% set z_safe = z_safe - 2.0 %}\nG1 Z{z_safe} F600\nG90\n{% endif %}\n{% else %}\n{action_respond_info("end print xyz_axes is NULL\\n")}\n{% endif %}'}, 'gcode_macro END_PRINT': {'gcode': '\nQmode_exit\nEXCLUDE_OBJECT_RESET\nPRINT_PREPARE_CLEAR\nM220 S100\nSET_VELOCITY_LIMIT ACCEL=5000 ACCEL_TO_DECEL=2500\nTURN_OFF_HEATERS\nM107 P1\nM107 P2\nEND_PRINT_POINT\nWAIT_TEMP_START\nM84'}, 'gcode_macro FIRST_FLOOR_PAUSE': {'description': 'Pause the first floor print', 'variable_extrude': '2.0', 'gcode': '\n\n{% set E = printer["gcode_macro FIRST_FLOOR_PAUSE"].extrude|float %}\n\n\n{% set y_park = printer.toolhead.axis_maximum.y/2 %}\n{% set x_park = printer.toolhead.axis_maximum.x|float - 10.0 %}\n\n{% set max_z = printer["gcode_macro PRINTER_PARAM"].max_z_position|float %}\n{% set act_z = printer.toolhead.position.z|float %}\n{% set z_safe = 0.0 %}\n{% if act_z < (max_z - 2.0) %}\n{% set z_safe = 2.0 %}\n{% elif act_z < max_z %}\n{% set z_safe = max_z - act_z %}\n{% endif %}\n\nSET_GCODE_VARIABLE MACRO=PRINTER_PARAM VARIABLE=z_safe_pause VALUE={z_safe|float}\nPAUSE_BASE\nG91\n{% if "xyz" in printer.toolhead.homed_axes %}\n{% if printer.extruder.can_extrude|lower == \'true\' %}\nG1 E-1.0 F180\nG1 E-{E} F4000\n{% else %}\n{action_respond_info("Extruder not hot enough")}\n{% endif %}\nG1 Z{z_safe} F600\nG90\nG1 X{x_park} Y{y_park} F30000\n{% else %}\n{action_respond_info("Printer not homed")}\n{% endif %}\n\nSET_GCODE_VARIABLE MACRO=PRINTER_PARAM VARIABLE=fan2_speed VALUE={printer[\'output_pin fan2\'].value}\n{% set fspeed = printer[\'gcode_macro PRINTER_PARAM\'].fan2_speed %}\n{action_respond_info("fan2_value = %s \\n" % (fspeed))}\n\nM106 P2 S0\nSET_E_MIN_CURRENT'}, 'gcode_macro FIRST_FLOOR_RESUME': {'description': 'Resume the first floor print', 'gcode': '\nRESTORE_E_CURRENT\n{% if printer[\'gcode_macro PRINTER_PARAM\'].fan2_speed > 0 %}\n\n\n\n{% set s_value = (printer[\'gcode_macro PRINTER_PARAM\'].fan2_speed * 255 - printer[\'gcode_macro PRINTER_PARAM\'].fan2_min) * 255 / (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan2_min)|float %}\nM106 P2 S{s_value}\n{% endif %}\n\n{% set E = printer["gcode_macro FIRST_FLOOR_PAUSE"].extrude|float + 1.0 %}\n\n{% if \'VELOCITY\' in params|upper %}\n{% set get_params = (\'VELOCITY=\' + params.VELOCITY) %}\n{%else %}\n{% set get_params = "" %}\n{% endif %}\n\n{% if printer.extruder.can_extrude|lower == \'true\' %}\nG91\nG1 E{E} F2100\n{% else %}\n{action_respond_info("Extruder not hot enough")}\n{% endif %}\nM400\nRESUME_BASE {get_params}'}, 'gcode_macro PAUSE': {'description': 'Pause the actual running print', 'rename_existing': 'PAUSE_BASE', 'variable_extrude': '2.0', 'gcode': '\n\n{% set E = printer["gcode_macro PAUSE"].extrude|float %}\n\n\n{% set y_park = printer.toolhead.axis_maximum.y/2 %}\n{% set x_park = printer.toolhead.axis_maximum.x|float - 10.0 %}\n\n{% set max_z = printer["gcode_macro PRINTER_PARAM"].max_z_position|float %}\n{% set act_z = printer.toolhead.position.z|float %}\n{% set z_safe = 0.0 %}\n{% if act_z < 48.0 %}\n{% set z_safe = 50.0 - act_z %}\n{% elif act_z < (max_z - 2.0) %}\n{% set z_safe = 2.0 %}\n{% elif act_z < max_z %}\n{% set z_safe = max_z - act_z %}\n{% endif %}\n{action_respond_info("z_safe = %s"% (z_safe))}\n\nSET_GCODE_VARIABLE MACRO=PRINTER_PARAM VARIABLE=z_safe_pause VALUE={z_safe|float}\nPAUSE_BASE\nG91\nSET_GCODE_VARIABLE MACRO=PRINTER_PARAM VARIABLE=hotend_temp VALUE={printer.extruder.target}\nM104 S140\n{% if "xyz" in printer.toolhead.homed_axes %}\n{% if printer.extruder.can_extrude|lower == \'true\' %}\nG1 E-1.0 F180\nG1 E-{E} F4000\n{% else %}\n{action_respond_info("Extruder not hot enough")}\n{% endif %}\nG1 Z{z_safe} F600\nM400\nG90\nG1 X{x_park} Y{y_park} F30000\n{% else %}\n{action_respond_info("Printer not homed")}\n{% endif %}\n\nSET_GCODE_VARIABLE MACRO=PRINTER_PARAM VARIABLE=fan2_speed VALUE={printer[\'output_pin fan2\'].value}\n{% set fspeed = printer[\'gcode_macro PRINTER_PARAM\'].fan2_speed %}\n{action_respond_info("fan2_value = %s \\n" % (fspeed))}\n\nM106 P2 S0\nSET_E_MIN_CURRENT'}, 'gcode_macro INPUTSHAPER': {'gcode': "\nSET_FILAMENT_SENSOR SENSOR=filament_sensor ENABLE=0\nSET_FILAMENT_SENSOR SENSOR=filament_sensor_2 ENABLE=0\nG90\nG28\n{% set POSITION_X = printer.configfile.settings['stepper_x'].position_max/2 %}\n{% set POSITION_Y = printer.configfile.settings['stepper_y'].position_max/2 %}\nG1 X{POSITION_X} Y{POSITION_Y} F6000\nG1 Z10 F600\nSHAPER_CALIBRATE AXIS=y\nCXSAVE_CONFIG\nSET_FILAMENT_SENSOR SENSOR=filament_sensor ENABLE=1\nSET_FILAMENT_SENSOR SENSOR=filament_sensor_2 ENABLE=1"}, 'gcode_macro BEDPID': {'gcode': '\nPID_CALIBRATE HEATER=heater_bed TARGET=100\nSAVE_CONFIG'}, 'gcode_macro TUNOFFINPUTSHAPER': {'gcode': '\nSET_INPUT_SHAPER SHAPER_FREQ_X=0 SHAPER_FREQ_Y=0'}, 'gcode_macro RESUME': {'description': 'Resume the actual running print', 'rename_existing': 'RESUME_BASE', 'gcode': '\nRESTORE_E_CURRENT\n{% if printer[\'gcode_macro PRINTER_PARAM\'].hotend_temp|int != 0 %}\n{% if printer[\'gcode_macro PRINTER_PARAM\'].hotend_temp|int > printer.extruder.temperature %}\nM109 S{printer[\'gcode_macro PRINTER_PARAM\'].hotend_temp|int}\n{% else %}\nM104 S{printer[\'gcode_macro PRINTER_PARAM\'].hotend_temp|int}\n{% endif %}\nSET_GCODE_VARIABLE MACRO=PRINTER_PARAM VARIABLE=hotend_temp VALUE=0\n{% endif %}\n{% if printer[\'gcode_macro PRINTER_PARAM\'].fan2_speed > 0 %}\n\n\n\n{% set s_value = (printer[\'gcode_macro PRINTER_PARAM\'].fan2_speed * 255 - printer[\'gcode_macro PRINTER_PARAM\'].fan2_min) * 255 / (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan2_min)|float %}\nM106 P2 S{s_value}\n{% endif %}\n{% set z_resume_move = printer[\'gcode_macro PRINTER_PARAM\'].z_safe_pause|int %}\n{% if z_resume_move > 2 %}\n{% set z_resume_move = z_resume_move - 2 %}\nG91\nG1 Z-{z_resume_move} F600\nM400\n{% endif %}\n{action_respond_info("z_resume_move = %s"% (z_resume_move))}\n\n{% set E = printer["gcode_macro PAUSE"].extrude|float + 1.0 %}\n\n{% if \'VELOCITY\' in params|upper %}\n{% set get_params = (\'VELOCITY=\' + params.VELOCITY) %}\n{%else %}\n{% set get_params = "" %}\n{% endif %}\n\n{% if printer.extruder.can_extrude|lower == \'true\' %}\nG91\nG1 E{E} F2100\nG90\n{% else %}\n{action_respond_info("Extruder not hot enough")}\n{% endif %}\nM400\nRESUME_BASE {get_params}'}, 'gcode_macro CANCEL_PRINT': {'description': 'Cancel the actual running print', 'rename_existing': 'CANCEL_PRINT_BASE', 'gcode': '\nEND_PRINT\nCANCEL_PRINT_BASE'}, 'gcode_macro G29': {'gcode': '\n{% if \'PROBE_COUNT\' in params|upper %}\n{% set get_count = (\'PROBE_COUNT\' + params.PROBE_COUNT) %}\n{%else %}\n{% set get_count = "" %}\n{% endif %}\n\n{% set bed_temp = printer.custom_macro.default_bed_temp %}\n{% set extruder_temp = printer.custom_macro.g28_ext_temp %}\n{% set nozzle_clear_temp = printer.custom_macro.default_extruder_temp %}\n\n{% if \'BED_TEMP\' in params|upper %}\n{% set bed_temp = params.BED_TEMP %}\n{% endif %}\n\n{% if \'EXTRUDER_TEMP\' in params|upper %}\n{% set nozzle_clear_temp = params.EXTRUDER_TEMP %}\n{% endif %}\nSET_FILAMENT_SENSOR SENSOR=filament_sensor ENABLE=0\nSET_FILAMENT_SENSOR SENSOR=filament_sensor_2 ENABLE=0\n\nG28\nBED_MESH_CLEAR\nNOZZLE_CLEAR HOT_MIN_TEMP={extruder_temp} HOT_MAX_TEMP={nozzle_clear_temp} BED_MAX_TEMP={bed_temp}\nACCURATE_G28\nM204 S5000\nSET_VELOCITY_LIMIT ACCEL_TO_DECEL=5000\nBED_MESH_CALIBRATE {get_count}\nBED_MESH_OUTPUT\n{% set y_park = printer.toolhead.axis_maximum.y/2 %}\n{% set x_park = printer.toolhead.axis_maximum.x|float - 10.0 %}\nG1 X{x_park} Y{y_park} F2000\nCXSAVE_CONFIG\nTURN_OFF_HEATERS\nSET_FILAMENT_SENSOR SENSOR=filament_sensor ENABLE=1\nSET_FILAMENT_SENSOR SENSOR=filament_sensor_2 ENABLE=1'}, 'fan_feedback': {'fan0_pin': 'nozzle_mcu:PB4', 'fan1_pin': 'PC6', 'print_delay_time': '5', 'current_delay_time': '2'}, 'custom_macro': {'default_bed_temp': '50', 'default_extruder_temp': '240', 'g28_ext_temp': '140'}, 'mcu': {'serial': '/dev/ttyS7', 'baud': '230400', 'restart_method': 'command'}, 'mcu nozzle_mcu': {'serial': '/dev/ttyS1', 'baud': '230400', 'restart_method': 'command'}, 'mcu leveling_mcu': {'serial': '/dev/ttyS9', 'baud': '230400', 'restart_method': 'command'}, 'verify_heater extruder': {}, 'verify_heater heater_bed': {'check_gain_time': '120', 'heating_gain': '1.0', 'hysteresis': '10'}, 'mcu rpi': {'serial': '/tmp/klipper_host_mcu'}, 'bl24c16f': {'i2c_mcu': 'rpi', 'i2c_bus': 'i2c.2', 'i2c_speed': '400000'}, 'idle_timeout': {'timeout': '99999999'}, 'virtual_sdcard': {'path': '/usr/data/printer_data/gcodes'}, 'gcode_arcs': {'resolution': '1.0'}, 'temperature_sensor mcu_temp': {'sensor_type': 'temperature_mcu', 'min_temp': '0', 'max_temp': '100'}, 'temperature_sensor chamber_temp': {'sensor_type': 'EPCOS 100K B57560G104F', 'sensor_pin': 'PC5', 'min_temp': '0', 'max_temp': '125'}, 'duplicate_pin_override': {'pins': 'PC0, PC5'}, 'temperature_fan chamber_fan': {'pin': 'PC0', 'cycle_time': '0.0100', 'hardware_pwm': 'false', 'max_power': '1', 'shutdown_speed': '0', 'sensor_type': 'EPCOS 100K B57560G104F', 'sensor_pin': 'PC5', 'min_temp': '0', 'max_temp': '70', 'control': 'watermark', 'max_delta': '2', 'target_temp': '35.0', 'max_speed': '1.0', 'min_speed': '0.0'}, 'stepper_x': {'step_pin': 'PC2', 'dir_pin': '!PB9', 'enable_pin': '!PC3', 'microsteps': '32', 'rotation_distance': '40', 'endstop_pin': 'tmc2209_stepper_x:virtual_endstop', 'position_endstop': '306.5', 'position_min': '-2', 'position_max': '306.5', 'homing_speed': '30', 'homing_retract_dist': '0'}, 'tmc2209 stepper_x': {'uart_pin': 'PA9', 'interpolate': 'True', 'run_current': '1.5', 'hold_current': '1.0', 'sense_resistor': '0.100', 'stealthchop_threshold': '0', 'uart_address': '3', 'diag_pin': '^PB12', 'driver_tbl': '0', 'driver_toff': '1', 'driver_hend': '0', 'driver_hstrt': '0', 'driver_sgthrs': '75'}, 'stepper_y': {'step_pin': 'PB8', 'dir_pin': '!PB7', 'enable_pin': '!PC3', 'microsteps': '32', 'rotation_distance': '40', 'endstop_pin': 'tmc2209_stepper_y:virtual_endstop', 'position_endstop': '-2', 'position_min': '-2', 'position_max': '306', 'homing_speed': '30', 'homing_retract_dist': '0'}, 'tmc2209 stepper_y': {'uart_pin': 'PA10', 'interpolate': 'True', 'run_current': '1.5', 'hold_current': '1.0', 'sense_resistor': '0.100', 'stealthchop_threshold': '0', 'uart_address': '3', 'diag_pin': '^PB13', 'driver_tbl': '0', 'driver_toff': '1', 'driver_hend': '0', 'driver_hstrt': '0', 'driver_sgthrs': '75'}, 'stepper_z': {'step_pin': 'PB6', 'dir_pin': '!PB5', 'enable_pin': '!PC3', 'microsteps': '16', 'rotation_distance': '8', 'gear_ratio': '64:20', 'endstop_pin': 'tmc2209_stepper_z:virtual_endstop', 'position_endstop': '0', 'position_max': '305', 'position_min': '-10', 'homing_speed': '10', 'second_homing_speed': '1', 'homing_retract_dist': '2.0'}, 'tmc2209 stepper_z': {'uart_pin': 'PA11', 'uart_address': '3', 'run_current': '0.8', 'diag_pin': '^PB14', 'stealthchop_threshold': '0', 'sense_resistor': '0.100', 'driver_sgthrs': '0'}, 'extruder': {'max_extrude_only_distance': '1000.0', 'max_extrude_cross_section': '80', 'step_pin': 'nozzle_mcu:PB1', 'dir_pin': 'nozzle_mcu:PB0', 'enable_pin': '!nozzle_mcu:PB2', 'microsteps': '16', 'rotation_distance': '6.9', 'nozzle_diameter': '0.400', 'filament_diameter': '1.750', 'heater_pin': 'nozzle_mcu:PB7', 'sensor_type': 'EPCOS 100K B57560G104F', 'sensor_pin': 'nozzle_mcu:PA0', 'pressure_advance': '0.04', 'pressure_advance_smooth_time': '0.040', 'control': 'pid', 'pid_kp': '25.013', 'pid_ki': '2.566', 'pid_kd': '60.966', 'min_temp': '0', 'max_temp': '320'}, 'tmc2209 extruder': {'uart_pin': 'nozzle_mcu:PB11', 'tx_pin': 'nozzle_mcu:PB10', 'uart_address': '3', 'run_current': '0.55', 'sense_resistor': '0.150', 'stealthchop_threshold': '0'}, 'heater_bed': {'heater_pin': 'PC8', 'sensor_type': 'EPCOS 100K B57560G104F', 'sensor_pin': 'PC4', 'control': 'pid', 'pid_kp': '37', 'pid_ki': '0.18', 'pid_kd': '280', 'min_temp': '0', 'max_temp': '125'}, 'filament_switch_sensor filament_sensor': {'pause_on_runout': 'true', 'switch_pin': '!PC15', 'runout_gcode': "\n{% if printer.extruder.can_extrude|lower == 'true' %}\nG91\nG0 E30 F600\nG90\n{% endif %}"}, 'filament_switch_sensor filament_sensor_2': {'pause_on_runout': 'true', 'switch_pin': '!nozzle_mcu:PA10'}, 'multi_pin heater_fans': {'pins': 'nozzle_mcu:PB5,PB2'}, 'heater_fan hotend_fan': {'pin': 'multi_pin:heater_fans', 'heater': 'extruder', 'heater_temp': '40'}, 'static_digital_output my_fan_output_pins': {'pins': 'nozzle_mcu: PB6'}, 'output_pin fan0': {'pin': '!nozzle_mcu: PB8', 'pwm': 'True', 'cycle_time': '0.0100', 'hardware_pwm': 'false', 'value': '0.00', 'scale': '255', 'shutdown_value': '0.0'}, 'output_pin fan1': {'pin': 'PC0', 'pwm': 'True', 'cycle_time': '0.0100', 'hardware_pwm': 'false', 'value': '0.00', 'scale': '255', 'shutdown_value': '0.0'}, 'output_pin fan2': {'pin': 'PB1', 'pwm': 'True', 'cycle_time': '0.0100', 'hardware_pwm': 'false', 'value': '0.00', 'scale': '255', 'shutdown_value': '0.0'}, 'output_pin LED': {'pin': 'PB0', 'pwm': 'True', 'cycle_time': '0.010', 'value': '1'}, 'output_pin power': {'pin': 'PC9'}, 'adxl345': {'cs_pin': 'nozzle_mcu:PA4', 'spi_speed': '5000000', 'axes_map': 'x,-z,y', 'spi_software_sclk_pin': 'nozzle_mcu:PA5', 'spi_software_mosi_pin': 'nozzle_mcu:PA7', 'spi_software_miso_pin': 'nozzle_mcu:PA6'}, 'resonance_tester': {'accel_chip': 'adxl345', 'accel_per_hz': '75', 'probe_points': '\n150,150,10'}, 'prtouch_v2': {'pr_version': '2', 'step_base': '2', 'z_offset': '0', 'noz_ex_com': '0.09', 'tilt_corr_dis': '0.05', 'tri_min_hold': '6000,10000', 'tri_max_hold': '13000,60000', 'pres_cnt': '4', 'pres0_clk_pins': 'leveling_mcu:PA7', 'pres0_sdo_pins': 'leveling_mcu:PA4', 'pres1_clk_pins': 'leveling_mcu:PA6', 'pres1_sdo_pins': 'leveling_mcu:PA3', 'pres2_clk_pins': 'leveling_mcu:PA2', 'pres2_sdo_pins': 'leveling_mcu:PA0', 'pres3_clk_pins': 'leveling_mcu:PA5', 'pres3_sdo_pins': 'leveling_mcu:PA1', 'show_msg': 'False', 'step_swap_pin': 'PC10', 'pres_swap_pin': 'leveling_mcu:PB1', 'g28_wait_cool_down': 'true', 'pa_clr_down_mm': '-0.15', 'clr_noz_start_x': '130', 'clr_noz_start_y': '303', 'clr_noz_len_x': '40', 'clr_noz_len_y': '2', 'speeds': '2.5,1.0', 'tri_hftr_cut': '2,1', 'tri_lftr_k1': '0.50,0.15', 'tri_min_hold_1': '6000,10000', 'tri_min_hold_2': '6000,10000', 'tri_min_hold_3': '6000,10000', 'tri_min_hold_4': '6000,10000', 'tri_min_hold_5': '6000,10000', 'tri_min_hold_6': '6000,10000', 'tri_min_hold_7': '6000,10000', 'tri_min_hold_8': '6000,10000', 'tri_min_hold_9': '6000,10000', 'tri_min_hold_10': '6000,10000', 'tri_min_hold_11': '6000,10000', 'tri_min_hold_12': '6000,10000', 'tri_min_hold_13': '6000,10000', 'tri_min_hold_14': '6000,10000', 'tri_min_hold_15': '6000,10000', 'tri_min_hold_16': '6000,10000', 'tri_min_hold_17': '6000,10000', 'tri_min_hold_18': '6000,10000', 'tri_min_hold_19': '6000,10000', 'tri_min_hold_20': '6000,10000', 'tri_min_hold_21': '6000,10000', 'tri_min_hold_22': '6000,10000', 'tri_min_hold_23': '6000,10000', 'tri_min_hold_24': '6000,10000', 'tri_min_hold_25': '6000,10000', 'tri_min_hold_26': '6000,10000', 'tri_min_hold_27': '6000,10000', 'tri_min_hold_28': '6000,10000', 'tri_min_hold_29': '6000,10000', 'tri_min_hold_30': '6000,10000', 'tri_min_hold_31': '6000,10000', 'tri_min_hold_32': '6000,10000', 'tri_min_hold_33': '6000,10000', 'tri_min_hold_34': '6000,10000', 'tri_min_hold_35': '6000,10000', 'tri_min_hold_36': '6000,10000', 'tri_max_hold_1': '13000,60000', 'tri_max_hold_2': '13000,60000', 'tri_max_hold_3': '13000,60000', 'tri_max_hold_4': '13000,60000', 'tri_max_hold_5': '13000,60000', 'tri_max_hold_6': '13000,60000', 'tri_max_hold_7': '13000,60000', 'tri_max_hold_8': '13000,60000', 'tri_max_hold_9': '13000,60000', 'tri_max_hold_10': '13000,60000', 'tri_max_hold_11': '13000,60000', 'tri_max_hold_12': '13000,60000', 'tri_max_hold_13': '13000,60000', 'tri_max_hold_14': '13000,60000', 'tri_max_hold_15': '13000,60000', 'tri_max_hold_16': '13000,60000', 'tri_max_hold_17': '13000,60000', 'tri_max_hold_18': '13000,60000', 'tri_max_hold_19': '13000,60000', 'tri_max_hold_20': '13000,60000', 'tri_max_hold_21': '13000,60000', 'tri_max_hold_22': '13000,60000', 'tri_max_hold_23': '13000,60000', 'tri_max_hold_24': '13000,60000', 'tri_max_hold_25': '13000,60000', 'tri_max_hold_26': '13000,60000', 'tri_max_hold_27': '13000,60000', 'tri_max_hold_28': '13000,60000', 'tri_max_hold_29': '13000,60000', 'tri_max_hold_30': '13000,60000', 'tri_max_hold_31': '13000,60000', 'tri_max_hold_32': '13000,60000', 'tri_max_hold_33': '13000,60000', 'tri_max_hold_34': '13000,60000', 'tri_max_hold_35': '13000,60000', 'tri_max_hold_36': '13000,60000'}, 'bed_mesh': {'speed': '150', 'mesh_min': '5,5', 'mesh_max': '295,295', 'probe_count': '6,6', 'fade_start': '5.0', 'fade_end': '50.0'}, 'display_status': {}, 'printer': {'kinematics': 'corexy', 'max_velocity': '800', 'max_accel': '20000', 'max_accel_to_decel': '20000', 'max_z_velocity': '20', 'square_corner_velocity': '5.0', 'square_corner_max_velocity': '200.0', 'max_z_accel': '300'}, 'pause_resume': {}, 'exclude_object': {}}, 'settings': {'mcu': {'serial': '/dev/ttyS7', 'baud': 230400, 'restart_method': 'command', 'max_stepper_error': 2.5e-05}, 'mcu nozzle_mcu': {'serial': '/dev/ttyS1', 'baud': 230400, 'restart_method': 'command', 'max_stepper_error': 2.5e-05}, 'mcu leveling_mcu': {'serial': '/dev/ttyS9', 'baud': 230400, 'restart_method': 'command', 'max_stepper_error': 2.5e-05}, 'mcu rpi': {'serial': '/tmp/klipper_host_mcu', 'max_stepper_error': 2.5e-05}, 'force_move': {'enable_force_move': True}, 'gcode_macro xyz_ready': {'gcode': '', 'description': 'G-Code macro', 'variable_x_ready': '0', 'variable_y_ready': '0', 'variable_z_ready': '0', 'variable_xy_moved': '0', 'variable_z_moved': '0', 'variable_safe_z': '3'}, 'gcode_macro _if_home_z': {'gcode': '\n{% if printer[\'gcode_macro xyz_ready\'].z_ready|int == 1 %}\n{% if printer.toolhead.position.z|int < 5 %}\n{% set z_park = 5.0 - printer.toolhead.position.z|int %}\nG91\nG1 z{z_park} F600\nG90\n{% endif %}\n{% else %}\n{% if printer[\'gcode_macro xyz_ready\'].z_moved|int == 0 %}\n{% if printer.print_stats.z_pos|float <= 20.0 or printer.print_stats.power_loss == 1 %}\nFORCE_MOVE STEPPER=stepper_z DISTANCE={printer["gcode_macro PRINTER_PARAM"].z_safe_g28} VELOCITY=10\n{% else %}\nFORCE_MOVE STEPPER=stepper_z DISTANCE=0.1 VELOCITY=10\n{% endif %}\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=z_moved VALUE=1\n{% endif %}\n{% endif %}', 'description': 'G-Code macro'}, 'gcode_macro _if_move_xy': {'gcode': '\n_IF_HOME_Z\n{% if printer[\'gcode_macro xyz_ready\'].xy_moved|int == 0 %}\n{action_respond_info("move xy\\n")}\n\nFORCE_MOVE STEPPER=stepper_y DISTANCE=-14 VELOCITY=50\nFORCE_MOVE STEPPER=stepper_y DISTANCE=7 VELOCITY=50\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=xy_moved VALUE=1\nG4 P1000\n{% endif %}', 'description': 'G-Code macro'}, 'gcode_macro _home_x': {'gcode': "\n_IF_MOVE_XY\n\n{% if printer['gcode_macro xyz_ready'].x_ready|int == 1 %}\n{% if (printer.configfile.settings['stepper_x'].position_max - printer.toolhead.position.x)|round < 10 %}\n{% set x_park = (10 - (printer.configfile.settings['stepper_x'].position_max - printer.toolhead.position.x))|round %}\n{% if x_park > 0 %}\nG91\nG1 x-{x_park} F3600\nG90\nG4 P1000\n{% endif %}\n{% endif %}\n{% endif %}\n\n\n\n\nG28 X\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=x_ready VALUE=1\n\nG91\nG1 x-10 F3600\nG90\n\nG4 P2000", 'description': 'G-Code macro'}, 'gcode_macro _home_y': {'gcode': "\n_IF_MOVE_XY\n\n{% if printer['gcode_macro xyz_ready'].y_ready|int == 1 %}\n{% if printer.toolhead.position.y|round < 8 %}\n{% set y_park = 8 - printer.toolhead.position.y|round %}\n{% if y_park > 0 %}\nG91\nG1 y{y_park} F3600\nG90\nG4 P1000\n{% endif %}\n{% endif %}\n{% endif %}\n\n\n\n\nG28 Y\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=y_ready VALUE=1\n\nG91\nG1 y10 F3600\nG90\n\nG4 P2000", 'description': 'G-Code macro'}, 'gcode_macro _home_z': {'gcode': '\n{% if printer[\'gcode_macro xyz_ready\'].y_ready|int == 1 %}\n{% if printer[\'gcode_macro xyz_ready\'].x_ready|int == 1 %}\n_IF_HOME_Z\n{% endif %}\n{% endif %}\n{% if printer.print_stats.z_pos|float >= 260.0 %}\nFORCE_MOVE STEPPER=stepper_z DISTANCE=-8 VELOCITY=10\n{% endif %}\n\n{% set POSITION_X = printer.configfile.settings[\'stepper_x\'].position_max/2 %}\n{% set POSITION_Y = printer.configfile.settings[\'stepper_y\'].position_max/2 %}\n\nG91\n{% set x_park = POSITION_X - printer.toolhead.position.x|int %}\n{% set y_park = POSITION_Y - printer.toolhead.position.y|int %}\n{action_respond_info("x_park = %s \\n" % (x_park))}\n{action_respond_info("y_park = %s \\n" % (y_park))}\nG1 x{x_park} y{y_park} F3600\nG90\n\n\nG28 Z\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=z_ready VALUE=1', 'description': 'G-Code macro'}, 'homing_override': {'axes': 'xyz', 'gcode': '\nM220 S100\n\n\n\n{% set x_axes = printer.toolhead.homed_axes %}\n{% if x_axes is defined and x_axes[0] is defined %}\n{action_respond_info(\n"x_axes: %s \\n"\n% (x_axes))}\n{% else %}\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=x_ready VALUE=0\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=y_ready VALUE=0\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=z_ready VALUE=0\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=xy_moved VALUE=0\nSET_GCODE_VARIABLE MACRO=xyz_ready VARIABLE=z_moved VALUE=0\n{action_respond_info(\n"x_axes is NULL\\n")}\n{% endif %}\n\n{% if x_axes is not defined or x_axes[2] is not defined %}\nBED_MESH_CLEAR\n{% endif %}\n\n{% if x_axes is defined and x_axes[0] is defined and x_axes[1] is defined %}\n{action_respond_info("x_axes: %s \\n"% (x_axes))}\n{% set position_y = printer.toolhead.position.y|int %}\n{% set max_y_position = printer["gcode_macro PRINTER_PARAM"].max_y_position|int %}\n{% if position_y >= max_y_position %}\nG91\nG0 Y-10 F3600\nG90\n{% endif %}\n{% endif %}\n\n{% set home_all = \'X\' not in params and \'Y\' not in params %}\n{% if \'Z\' in params and \'X\' not in params and \'Y\' not in params %}\n{% if x_axes[0] is defined and x_axes[1] is defined %}\n{% set home_all = 0 %}\n{% endif %}\n{% endif %}\n\n{% if home_all or \'X\' in params %}\n_HOME_X\n{% endif %}\n\n{% if home_all or \'Y\' in params %}\n_HOME_Y\n{% endif %}\n\n{% if home_all or \'X\' in params %}\n_HOME_X\n{% endif %}\n\n{% if home_all or \'Y\' in params %}\n_HOME_Y\n{% endif %}\n\n{% if home_all or \'Z\' in params %}\n_HOME_Z\n{% endif %}\nBED_MESH_PROFILE LOAD="default"\n\n\n\n\nG4 P500'}, 'gcode_macro printer_param': {'gcode': '', 'description': 'G-Code macro', 'variable_z_safe_pause': '0.0', 'variable_z_safe_g28': 3.0, 'variable_max_x_position': '300.0', 'variable_max_y_position': '300.0', 'variable_max_z_position': '300.0', 'variable_fans': '3', 'variable_auto_g29': '0', 'variable_fan0_min': '25', 'variable_fan1_min': '50', 'variable_fan2_min': '180', 'variable_fan2_speed': '0', 'variable_hotend_temp': '0', 'variable_e_min_current': '0.27', 'variable_cam_off_temp': '60'}, 'gcode_macro autotune_shapers': {'gcode': '', 'description': 'G-Code macro', 'variable_autotune_shapers': "'ei'"}, 'gcode_macro load_material_close_fan2': {'gcode': "\nSAVE_GCODE_STATE NAME=myMoveState\n{% if printer['output_pin fan2'].value > 0.0 %}\nSET_GCODE_VARIABLE MACRO=LOAD_MATERIAL_CLOSE_FAN2 VARIABLE=fan2_value VALUE={printer['output_pin fan2'].value}\nM107 P2\n{% endif %}\nRESTORE_E_CURRENT", 'description': 'G-Code macro', 'variable_fan2_value': '0'}, 'gcode_macro load_material_restore_fan2': {'gcode': '\n{% set fan2_value = printer[\'gcode_macro LOAD_MATERIAL_CLOSE_FAN2\'].fan2_value|float %}\nRESTORE_GCODE_STATE NAME=myMoveState\n{% if fan2_value > 0.0 %}\n{% set s_value = (fan2_value * 255 - printer["gcode_macro PRINTER_PARAM"].fan2_min) * 255 / (255 - printer["gcode_macro PRINTER_PARAM"].fan2_min) %}\nM106 P2 S{s_value}\nSET_GCODE_VARIABLE MACRO=LOAD_MATERIAL_CLOSE_FAN2 VARIABLE=fan2_value VALUE=0\n{% endif %}\nSET_E_MIN_CURRENT', 'description': 'G-Code macro'}, 'gcode_macro set_e_min_current': {'gcode': "\n{% set e_current = printer['gcode_macro PRINTER_PARAM'].e_min_current %}\nM400\nSET_TMC_CURRENT STEPPER=extruder CURRENT={e_current} HOLDCURRENT={e_current}\nG4 P2000", 'description': 'G-Code macro'}, 'gcode_macro restore_e_current': {'gcode': "\n{% set e_current = printer.configfile.settings['tmc2209 extruder'].run_current %}\nM400\nSET_TMC_CURRENT STEPPER=extruder CURRENT={e_current} HOLDCURRENT={e_current}\nG4 P2000", 'description': 'G-Code macro'}, 'gcode_macro load_material': {'gcode': '\nLOAD_MATERIAL_CLOSE_FAN2\nM109 S{printer.custom_macro.default_extruder_temp}\nG91\nG1 E80 F180\nLOAD_MATERIAL_RESTORE_FAN2', 'description': 'G-Code macro'}, 'gcode_macro quit_material': {'gcode': '\nSAVE_GCODE_STATE NAME=myMoveState\nRESTORE_E_CURRENT\nM109 S{printer.custom_macro.default_extruder_temp}\nM83\nG1 E100 F300\nG1 E-15 F3000\nG1 E-22.4700 F2400\nG1 E-6.4200 F1200\nG1 E-3.2100 F720\nG1 E5.0000 F356\nG1 E-5.0000 F384\nG1 E5.0000 F412\nG1 E-5.0000 F440\nG1 E5.0000 F467\nG1 E-5.0000 F495\nG1 E5.0000 F523\nG1 E-5.0000 F3000\nG1 E-15 F3000\nSET_E_MIN_CURRENT\nRESTORE_GCODE_STATE NAME=myMoveState', 'description': 'G-Code macro'}, 'gcode_macro qmode': {'gcode': '\n{% set printer_state = printer.print_stats.state %}\n{% if printer[\'gcode_macro Qmode\'].flag|int == 0 %}\n{% if printer_state == "printing" or printer_state == "paused" %}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=accel VALUE={printer.toolhead.max_accel}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=accel_to_decel VALUE={printer.toolhead.max_accel_to_decel}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=velocity VALUE={printer.toolhead.max_velocity}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=square_corner_velocity VALUE={printer.toolhead.square_corner_velocity}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=pressure_advance VALUE={printer.extruder.pressure_advance}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=speed_factor VALUE={printer.gcode_move.speed_factor}\nSET_TMC_FIELD STEPPER=stepper_x FIELD=en_spreadcycle VALUE=0\nSET_TMC_FIELD STEPPER=stepper_y FIELD=en_spreadcycle VALUE=0\nSET_TMC_CURRENT STEPPER=stepper_x CURRENT=1.0\nSET_TMC_CURRENT STEPPER=stepper_y CURRENT=1.0\nG4 P1000\n\n\nSET_VELOCITY_LIMIT ACCEL=2500\nSET_VELOCITY_LIMIT ACCEL_TO_DECEL=2500\nSET_VELOCITY_LIMIT VELOCITY=150\nSET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY=5\nSET_PRESSURE_ADVANCE ADVANCE=0.05\nM220 S50\n\n{% set tmp = printer[\'output_pin fan0\'].value * 255 %}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan0_value VALUE={tmp}\n{% if tmp - printer[\'gcode_macro PRINTER_PARAM\'].fan0_min > (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan0_min) / 2 %}\n{% set tmp = printer[\'gcode_macro PRINTER_PARAM\'].fan0_min + (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan0_min) / 2 %}\nSET_PIN PIN=fan0 VALUE={tmp}\n{% endif %}\n\n{% set tmp = printer[\'output_pin fan1\'].value * 255 %}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan1_value VALUE={printer[\'output_pin fan1\'].value * 255}\n{% if tmp - printer[\'gcode_macro PRINTER_PARAM\'].fan1_min > (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan1_min) / 2 %}\n{% set tmp = printer[\'gcode_macro PRINTER_PARAM\'].fan1_min + (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan1_min) / 2 %}\nSET_PIN PIN=fan1 VALUE={tmp}\n{% endif %}\n\n{% set tmp = printer[\'output_pin fan2\'].value * 255 %}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan2_value VALUE={printer[\'output_pin fan2\'].value * 255}\n{% if tmp - printer[\'gcode_macro PRINTER_PARAM\'].fan2_min > (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan2_min) / 2 %}\n{% set tmp = printer[\'gcode_macro PRINTER_PARAM\'].fan2_min + (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan2_min) / 2 %}\nSET_PIN PIN=fan2 VALUE={tmp}\n{% endif %}\n\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=flag VALUE=1\nSET_QMODE_FLAG FLAG=1\n{% endif %}\n{% endif %}', 'description': 'G-Code macro', 'variable_flag': '0', 'variable_accel': '0', 'variable_accel_to_decel': '0', 'variable_velocity': '0', 'variable_square_corner_velocity': '0', 'variable_pressure_advance': '0.0', 'variable_fan0_value': '0.00', 'variable_fan1_value': '0.00', 'variable_fan2_value': '0.00', 'variable_speed_factor': '0', 'variable_max_accel': '2500', 'variable_max_accel_to_decel': '2500'}, 'gcode_macro qmode_exit': {'gcode': '\n{% set printer_state = printer.print_stats.state %}\n{% if printer[\'gcode_macro Qmode\'].flag|int == 1 %}\n{% if printer_state == "printing" or printer_state == "paused" %}\nSET_VELOCITY_LIMIT ACCEL={printer[\'gcode_macro Qmode\'].accel}\nSET_VELOCITY_LIMIT ACCEL_TO_DECEL={printer[\'gcode_macro Qmode\'].accel_to_decel}\nSET_VELOCITY_LIMIT VELOCITY={printer[\'gcode_macro Qmode\'].velocity}\nSET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY={printer[\'gcode_macro Qmode\'].square_corner_velocity}\nSET_PRESSURE_ADVANCE ADVANCE={printer[\'gcode_macro Qmode\'].pressure_advance}\nM220 S{printer[\'gcode_macro Qmode\'].speed_factor * 100}\n\n{% set X_RUN_CUR = printer.configfile.settings[\'tmc2209 stepper_x\'].run_current %}\n{% set Y_RUN_CUR = printer.configfile.settings[\'tmc2209 stepper_y\'].run_current %}\nSET_TMC_CURRENT STEPPER=stepper_x CURRENT={X_RUN_CUR}\nSET_TMC_CURRENT STEPPER=stepper_y CURRENT={Y_RUN_CUR}\nSET_TMC_FIELD STEPPER=stepper_x FIELD=en_spreadcycle VALUE=1\nSET_TMC_FIELD STEPPER=stepper_y FIELD=en_spreadcycle VALUE=1\nG4 P1000\n\n{% if printer[\'output_pin fan0\'].value != 0 %}\n{action_respond_info("fan0_value = %s" % printer[\'gcode_macro Qmode\'].fan0_value)}\nSET_PIN PIN=fan0 VALUE={printer[\'gcode_macro Qmode\'].fan0_value}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan0_value VALUE=0\n{% endif %}\n{% if printer[\'output_pin fan1\'].value != 0 %}\n{action_respond_info("fan1_value = %s" % printer[\'gcode_macro Qmode\'].fan1_value)}\nSET_PIN PIN=fan1 VALUE={printer[\'gcode_macro Qmode\'].fan1_value}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan1_value VALUE=0\n{% endif %}\n{% if printer[\'output_pin fan2\'].value != 0 %}\n{action_respond_info("fan2_value = %s" % printer[\'gcode_macro Qmode\'].fan2_value)}\nSET_PIN PIN=fan2 VALUE={printer[\'gcode_macro Qmode\'].fan2_value}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan2_value VALUE=0\n{% endif %}\n\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=flag VALUE=0\nSET_QMODE_FLAG FLAG=0\n{% endif %}\n{% endif %}', 'description': 'G-Code macro'}, 'gcode_macro m204': {'gcode': '\n\n{% set get_params = "" %}\n{% set qmode_max_accel = printer[\'gcode_macro Qmode\'].max_accel|string %}\n{% if \'S\' in params|upper %}\n{% if printer[\'gcode_macro Qmode\'].flag|int == 1 and params.S|float > qmode_max_accel|float %}\n{% set get_params = (get_params + \' \' + \'S\' + qmode_max_accel) %}\n{% else %}\n{% set get_params = (get_params + \' \' + \'S\' + params.S) %}\n{% endif %}\n{% endif %}\n{% if \'P\' in params|upper %}\n{% if printer[\'gcode_macro Qmode\'].flag|int == 1 and params.P|float > qmode_max_accel|float %}\n{% set get_params = (get_params + \' \' + \'P\' + qmode_max_accel) %}\n{% else %}\n{% set get_params = (get_params + \' \' + \'P\' + params.P) %}\n{% endif %}\n{% endif %}\n{% if \'T\' in params|upper %}\n{% if printer[\'gcode_macro Qmode\'].flag|int == 1 and params.T|float > qmode_max_accel|float %}\n{% set get_params = (get_params + \' \' + \'T\' + qmode_max_accel) %}\n{% else %}\n{% set get_params = (get_params + \' \' + \'T\' + params.T) %}\n{% endif %}\n{% endif %}\nM204.1 {get_params}', 'rename_existing': 'M204.1', 'description': 'G-Code macro'}, 'gcode_macro m205': {'gcode': "\n{% if 'X' in params %}\nSET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY={params.X}\n{% elif 'Y' in params %}\nSET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY={params.Y}\n{% endif %}", 'description': 'G-Code macro'}, 'gcode_macro m106': {'gcode': '\n{% set fans = printer["gcode_macro PRINTER_PARAM"].fans|int %}\n{% set fan = 0 %}\n{% set value = 0 %}\n{% if params.P is defined %}\n{% set tmp = params.P|int %}\n{% if tmp < fans %}\n{% set fan = tmp %}\n{% endif %}\n{% endif %}\n{% if params.S is defined %}\n{% set tmp = params.S|float %}\n{% else %}\n{% set tmp = 255 %}\n{% endif %}\n{% if tmp > 0 %}\n{% if fan == 0 %}\n{% set value = (255 - printer["gcode_macro PRINTER_PARAM"].fan0_min) / 255 * tmp %}\n{% if printer[\'gcode_macro Qmode\'].flag | int == 1 %}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan0_value VALUE={printer["gcode_macro PRINTER_PARAM"].fan0_min + value}\n{% if value > (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan0_min) / 2  %}\n{% set value = printer["gcode_macro PRINTER_PARAM"].fan0_min + (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan0_min) / 2 %}\n{% else %}\n{% set value = printer["gcode_macro PRINTER_PARAM"].fan0_min + value %}\n{% endif %}\n{% else %}\n{% set value = printer["gcode_macro PRINTER_PARAM"].fan0_min + value %}\n{% endif %}\n{% endif %}\n{% if fan == 1 %}\n{% set value = (255 - printer["gcode_macro PRINTER_PARAM"].fan1_min) / 255 * tmp %}\n{% if printer[\'gcode_macro Qmode\'].flag | int == 1 %}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan1_value VALUE={printer["gcode_macro PRINTER_PARAM"].fan1_min + value}\n{% if value > (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan1_min) / 2  %}\n{% set value = printer["gcode_macro PRINTER_PARAM"].fan1_min + (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan1_min) / 2 %}\n{% else %}\n{% set value = printer["gcode_macro PRINTER_PARAM"].fan1_min + value %}\n{% endif %}\n{% else %}\n{% set value = printer["gcode_macro PRINTER_PARAM"].fan1_min + value %}\n{% endif %}\n{% endif %}\n{% if fan == 2 %}\n{% set value = (255 - printer["gcode_macro PRINTER_PARAM"].fan2_min) / 255 * tmp %}\n{% if printer[\'gcode_macro Qmode\'].flag | int == 1 %}\nSET_GCODE_VARIABLE MACRO=Qmode VARIABLE=fan2_value VALUE={printer["gcode_macro PRINTER_PARAM"].fan2_min + value}\n{% if value > (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan2_min) / 2  %}\n{% set value = printer["gcode_macro PRINTER_PARAM"].fan2_min + (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan2_min) / 2 %}\n{% else %}\n{% set value = printer["gcode_macro PRINTER_PARAM"].fan2_min + value %}\n{% endif %}\n{% else %}\n{% set value = printer["gcode_macro PRINTER_PARAM"].fan2_min + value %}\n{% endif %}\n{% endif %}\n{% endif %}\n{% if value >= 255 %}\n{% set value = 255 %}\n{% endif %}\nSET_PIN PIN=fan{fan} VALUE={value}', 'description': 'G-Code macro'}, 'gcode_macro m107': {'gcode': '\n{% set fans = printer["gcode_macro PRINTER_PARAM"].fans|int %}\n{% if params.P is defined %}\n{% if params.P|int < fans %}\nSET_PIN PIN=fan{params.P|int} VALUE=0\n{% else %}\nSET_PIN PIN=fan0 VALUE=0\n{% endif %}\n{% else %}\nSET_PIN PIN=fan0 VALUE=0\nSET_PIN PIN=fan2 VALUE=0\n{% endif %}', 'description': 'G-Code macro'}, 'gcode_macro m141': {'gcode': '\n{% if \'S\' in params|upper %}\n{% if printer["temperature_fan chamber_fan"].speed > 0.0 %}\nSET_PIN PIN=fan1 VALUE=255\n{% else %}\nSET_PIN PIN=fan1 VALUE=0\n{% endif %}\n{% if params.S|int > 0 %}\nSET_TEMPERATURE_FAN_TARGET TEMPERATURE_FAN=chamber_fan TARGET={params.S|default(35)}\n{% else %}\nSET_TEMPERATURE_FAN_TARGET TEMPERATURE_FAN=chamber_fan TARGET=35\n{% if params.S|int == 0 %}\nSET_PIN PIN=fan1 VALUE=0\n{% endif %}\n{% endif %}\n{% endif %}', 'description': 'Set Chamber temperature with slicers'}, 'gcode_macro m900': {'gcode': "\n{% if 'K' in params %}\n{% if 'E' in params %}\nSET_PRESSURE_ADVANCE EXTRUDER={params.E} ADVANCE={params.K}\n{% else %}\nSET_PRESSURE_ADVANCE ADVANCE={params.K}\n{% endif %}\n{% endif %}", 'description': 'G-Code macro'}, 'delayed_gcode wait_temp': {'gcode': '\n{% set cur_temp = printer.extruder.temperature %}\n{% if cur_temp|int < 40 %}\nWAIT_TEMP_END\n{% else %}\nUPDATE_DELAYED_GCODE ID=wait_temp DURATION=5\n{% endif %}', 'initial_duration': 0.0}, 'gcode_macro wait_temp_start': {'gcode': '\n{action_respond_info("wait temp start\\n")}\nUPDATE_DELAYED_GCODE ID=wait_temp DURATION=1\nM106 P0 S255', 'description': 'G-Code macro'}, 'gcode_macro wait_temp_end': {'gcode': '\n{action_respond_info("wait temp end\\n")}\nUPDATE_DELAYED_GCODE ID=wait_temp DURATION=0\nM106 P0 S0', 'description': 'G-Code macro'}, 'gcode_macro print_calibration': {'gcode': '\nCX_PRINT_LEVELING_CALIBRATION', 'description': 'G-Code macro'}, 'gcode_macro first_floor_pause_position': {'gcode': "\n{% set extruder_temp = printer.custom_macro.g28_ext_temp %}\nM104 S{extruder_temp}\n{% set y_park = printer.toolhead.axis_maximum.y/2 %}\n{% set x_park = printer['gcode_macro PRINTER_PARAM'].max_x_position|float + 1 %}\nG90\nG1 Z2 F600\nG1 X{x_park} Y{y_park} F6000\nG1 Z0.2 F600", 'description': 'G-Code macro'}, 'gcode_macro accurate_g28': {'gcode': '\nACCURATE_HOME_Z', 'description': 'G-Code macro'}, 'gcode_macro start_print': {'gcode': '\nWAIT_TEMP_END\nCLEAR_PAUSE\n{% set g28_extruder_temp = printer.custom_macro.g28_ext_temp %}\n{% set bed_temp = printer.custom_macro.default_bed_temp %}\n{% set extruder_temp = printer.custom_macro.default_extruder_temp %}\n\n{% if \'BED_TEMP\' in params|upper and (params.BED_TEMP|float) %}\n{% set bed_temp = params.BED_TEMP %}\n{% endif %}\n\n{% if \'EXTRUDER_TEMP\' in params|upper and (params.EXTRUDER_TEMP|float) %}\n{% set extruder_temp = params.EXTRUDER_TEMP %}\n{% endif %}\n\n{% if printer[\'gcode_macro START_PRINT\'].prepare|int == 0 %}\n{action_respond_info("not prepare.\\n")}\nPRINT_PREPARE_CLEAR\nCX_ROUGH_G28 EXTRUDER_TEMP={extruder_temp} BED_TEMP={bed_temp}\nCX_NOZZLE_CLEAR\nACCURATE_G28\nCX_PRINT_LEVELING_CALIBRATION\n{% else %}\nPRINT_PREPARE_CLEAR\n{% endif %}\n\nCX_PRINT_DRAW_ONE_LINE', 'description': 'G-Code macro', 'variable_prepare': '0'}, 'gcode_macro print_prepared': {'gcode': '\nSET_GCODE_VARIABLE MACRO=START_PRINT VARIABLE=prepare VALUE=1\n{action_respond_info("print prepared")}', 'description': 'G-Code macro'}, 'gcode_macro print_prepare_clear': {'gcode': '\nSET_GCODE_VARIABLE MACRO=START_PRINT VARIABLE=prepare VALUE=0', 'description': 'G-Code macro'}, 'gcode_macro end_print_point_without_lifting': {'gcode': '\n{% if "xyz" in printer.toolhead.homed_axes %}\n{% set E = printer["gcode_macro PAUSE"].extrude|float %}\nG91\n{% if printer.extruder.can_extrude|lower == \'true\' %}\nG1 E-1.0 F180\nG1 E-{E} F4000\n{% else %}\n{action_respond_info("Extruder not hot enough")}\n{% endif %}\nG1 Z2.0 F600\nG90\n{% set y_park = printer.toolhead.axis_maximum.y/2 %}\n{% set x_park = printer.toolhead.axis_maximum.x|float - 10.0 %}\nG1 X{x_park} Y{y_park} F30000\n{% else %}\n{action_respond_info("end print xyz_axes is NULL\\n")}\n{% endif %}', 'description': 'G-Code macro'}, 'gcode_macro end_print_point': {'gcode': '\n{% if "xyz" in printer.toolhead.homed_axes %}\n{% set E = printer["gcode_macro PAUSE"].extrude|float %}\n{% set max_z = printer["gcode_macro PRINTER_PARAM"].max_z_position|float %}\n{% set act_z = printer.toolhead.position.z|float %}\n{% set z_safe = 0.0 %}\n{% if act_z < (max_z / 2) %}\n{% set z_safe = (max_z / 2) - act_z %}\n{% elif act_z < max_z %}\n{% set z_safe = 2.0 %}\n{% endif %}\nG91\n{% if printer.extruder.can_extrude|lower == \'true\' %}\nG1 E-1.0 F180\nG1 E-{E} F4000\n{% else %}\n{action_respond_info("Extruder not hot enough")}\n{% endif %}\nG1 Z2.0 F600\nG90\n{% set y_park = printer.toolhead.axis_maximum.y/2 %}\n{% set x_park = printer.toolhead.axis_maximum.x|float - 10.0 %}\nG1 X{x_park} Y{y_park} F30000\n{% if z_safe > 2.0 %}\nG91\n{% set z_safe = z_safe - 2.0 %}\nG1 Z{z_safe} F600\nG90\n{% endif %}\n{% else %}\n{action_respond_info("end print xyz_axes is NULL\\n")}\n{% endif %}', 'description': 'G-Code macro'}, 'gcode_macro end_print': {'gcode': '\nQmode_exit\nEXCLUDE_OBJECT_RESET\nPRINT_PREPARE_CLEAR\nM220 S100\nSET_VELOCITY_LIMIT ACCEL=5000 ACCEL_TO_DECEL=2500\nTURN_OFF_HEATERS\nM107 P1\nM107 P2\nEND_PRINT_POINT\nWAIT_TEMP_START\nM84', 'description': 'G-Code macro'}, 'gcode_macro first_floor_pause': {'gcode': '\n\n{% set E = printer["gcode_macro FIRST_FLOOR_PAUSE"].extrude|float %}\n\n\n{% set y_park = printer.toolhead.axis_maximum.y/2 %}\n{% set x_park = printer.toolhead.axis_maximum.x|float - 10.0 %}\n\n{% set max_z = printer["gcode_macro PRINTER_PARAM"].max_z_position|float %}\n{% set act_z = printer.toolhead.position.z|float %}\n{% set z_safe = 0.0 %}\n{% if act_z < (max_z - 2.0) %}\n{% set z_safe = 2.0 %}\n{% elif act_z < max_z %}\n{% set z_safe = max_z - act_z %}\n{% endif %}\n\nSET_GCODE_VARIABLE MACRO=PRINTER_PARAM VARIABLE=z_safe_pause VALUE={z_safe|float}\nPAUSE_BASE\nG91\n{% if "xyz" in printer.toolhead.homed_axes %}\n{% if printer.extruder.can_extrude|lower == \'true\' %}\nG1 E-1.0 F180\nG1 E-{E} F4000\n{% else %}\n{action_respond_info("Extruder not hot enough")}\n{% endif %}\nG1 Z{z_safe} F600\nG90\nG1 X{x_park} Y{y_park} F30000\n{% else %}\n{action_respond_info("Printer not homed")}\n{% endif %}\n\nSET_GCODE_VARIABLE MACRO=PRINTER_PARAM VARIABLE=fan2_speed VALUE={printer[\'output_pin fan2\'].value}\n{% set fspeed = printer[\'gcode_macro PRINTER_PARAM\'].fan2_speed %}\n{action_respond_info("fan2_value = %s \\n" % (fspeed))}\n\nM106 P2 S0\nSET_E_MIN_CURRENT', 'description': 'Pause the first floor print', 'variable_extrude': '2.0'}, 'gcode_macro first_floor_resume': {'gcode': '\nRESTORE_E_CURRENT\n{% if printer[\'gcode_macro PRINTER_PARAM\'].fan2_speed > 0 %}\n\n\n\n{% set s_value = (printer[\'gcode_macro PRINTER_PARAM\'].fan2_speed * 255 - printer[\'gcode_macro PRINTER_PARAM\'].fan2_min) * 255 / (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan2_min)|float %}\nM106 P2 S{s_value}\n{% endif %}\n\n{% set E = printer["gcode_macro FIRST_FLOOR_PAUSE"].extrude|float + 1.0 %}\n\n{% if \'VELOCITY\' in params|upper %}\n{% set get_params = (\'VELOCITY=\' + params.VELOCITY) %}\n{%else %}\n{% set get_params = "" %}\n{% endif %}\n\n{% if printer.extruder.can_extrude|lower == \'true\' %}\nG91\nG1 E{E} F2100\n{% else %}\n{action_respond_info("Extruder not hot enough")}\n{% endif %}\nM400\nRESUME_BASE {get_params}', 'description': 'Resume the first floor print'}, 'gcode_macro pause': {'gcode': '\n\n{% set E = printer["gcode_macro PAUSE"].extrude|float %}\n\n\n{% set y_park = printer.toolhead.axis_maximum.y/2 %}\n{% set x_park = printer.toolhead.axis_maximum.x|float - 10.0 %}\n\n{% set max_z = printer["gcode_macro PRINTER_PARAM"].max_z_position|float %}\n{% set act_z = printer.toolhead.position.z|float %}\n{% set z_safe = 0.0 %}\n{% if act_z < 48.0 %}\n{% set z_safe = 50.0 - act_z %}\n{% elif act_z < (max_z - 2.0) %}\n{% set z_safe = 2.0 %}\n{% elif act_z < max_z %}\n{% set z_safe = max_z - act_z %}\n{% endif %}\n{action_respond_info("z_safe = %s"% (z_safe))}\n\nSET_GCODE_VARIABLE MACRO=PRINTER_PARAM VARIABLE=z_safe_pause VALUE={z_safe|float}\nPAUSE_BASE\nG91\nSET_GCODE_VARIABLE MACRO=PRINTER_PARAM VARIABLE=hotend_temp VALUE={printer.extruder.target}\nM104 S140\n{% if "xyz" in printer.toolhead.homed_axes %}\n{% if printer.extruder.can_extrude|lower == \'true\' %}\nG1 E-1.0 F180\nG1 E-{E} F4000\n{% else %}\n{action_respond_info("Extruder not hot enough")}\n{% endif %}\nG1 Z{z_safe} F600\nM400\nG90\nG1 X{x_park} Y{y_park} F30000\n{% else %}\n{action_respond_info("Printer not homed")}\n{% endif %}\n\nSET_GCODE_VARIABLE MACRO=PRINTER_PARAM VARIABLE=fan2_speed VALUE={printer[\'output_pin fan2\'].value}\n{% set fspeed = printer[\'gcode_macro PRINTER_PARAM\'].fan2_speed %}\n{action_respond_info("fan2_value = %s \\n" % (fspeed))}\n\nM106 P2 S0\nSET_E_MIN_CURRENT', 'rename_existing': 'PAUSE_BASE', 'description': 'Pause the actual running print', 'variable_extrude': '2.0'}, 'gcode_macro inputshaper': {'gcode': "\nSET_FILAMENT_SENSOR SENSOR=filament_sensor ENABLE=0\nSET_FILAMENT_SENSOR SENSOR=filament_sensor_2 ENABLE=0\nG90\nG28\n{% set POSITION_X = printer.configfile.settings['stepper_x'].position_max/2 %}\n{% set POSITION_Y = printer.configfile.settings['stepper_y'].position_max/2 %}\nG1 X{POSITION_X} Y{POSITION_Y} F6000\nG1 Z10 F600\nSHAPER_CALIBRATE AXIS=y\nCXSAVE_CONFIG\nSET_FILAMENT_SENSOR SENSOR=filament_sensor ENABLE=1\nSET_FILAMENT_SENSOR SENSOR=filament_sensor_2 ENABLE=1", 'description': 'G-Code macro'}, 'gcode_macro bedpid': {'gcode': '\nPID_CALIBRATE HEATER=heater_bed TARGET=100\nSAVE_CONFIG', 'description': 'G-Code macro'}, 'gcode_macro tunoffinputshaper': {'gcode': '\nSET_INPUT_SHAPER SHAPER_FREQ_X=0 SHAPER_FREQ_Y=0', 'description': 'G-Code macro'}, 'gcode_macro resume': {'gcode': '\nRESTORE_E_CURRENT\n{% if printer[\'gcode_macro PRINTER_PARAM\'].hotend_temp|int != 0 %}\n{% if printer[\'gcode_macro PRINTER_PARAM\'].hotend_temp|int > printer.extruder.temperature %}\nM109 S{printer[\'gcode_macro PRINTER_PARAM\'].hotend_temp|int}\n{% else %}\nM104 S{printer[\'gcode_macro PRINTER_PARAM\'].hotend_temp|int}\n{% endif %}\nSET_GCODE_VARIABLE MACRO=PRINTER_PARAM VARIABLE=hotend_temp VALUE=0\n{% endif %}\n{% if printer[\'gcode_macro PRINTER_PARAM\'].fan2_speed > 0 %}\n\n\n\n{% set s_value = (printer[\'gcode_macro PRINTER_PARAM\'].fan2_speed * 255 - printer[\'gcode_macro PRINTER_PARAM\'].fan2_min) * 255 / (255 - printer[\'gcode_macro PRINTER_PARAM\'].fan2_min)|float %}\nM106 P2 S{s_value}\n{% endif %}\n{% set z_resume_move = printer[\'gcode_macro PRINTER_PARAM\'].z_safe_pause|int %}\n{% if z_resume_move > 2 %}\n{% set z_resume_move = z_resume_move - 2 %}\nG91\nG1 Z-{z_resume_move} F600\nM400\n{% endif %}\n{action_respond_info("z_resume_move = %s"% (z_resume_move))}\n\n{% set E = printer["gcode_macro PAUSE"].extrude|float + 1.0 %}\n\n{% if \'VELOCITY\' in params|upper %}\n{% set get_params = (\'VELOCITY=\' + params.VELOCITY) %}\n{%else %}\n{% set get_params = "" %}\n{% endif %}\n\n{% if printer.extruder.can_extrude|lower == \'true\' %}\nG91\nG1 E{E} F2100\nG90\n{% else %}\n{action_respond_info("Extruder not hot enough")}\n{% endif %}\nM400\nRESUME_BASE {get_params}', 'rename_existing': 'RESUME_BASE', 'description': 'Resume the actual running print'}, 'gcode_macro cancel_print': {'gcode': '\nEND_PRINT\nCANCEL_PRINT_BASE', 'rename_existing': 'CANCEL_PRINT_BASE', 'description': 'Cancel the actual running print'}, 'gcode_macro g29': {'gcode': '\n{% if \'PROBE_COUNT\' in params|upper %}\n{% set get_count = (\'PROBE_COUNT\' + params.PROBE_COUNT) %}\n{%else %}\n{% set get_count = "" %}\n{% endif %}\n\n{% set bed_temp = printer.custom_macro.default_bed_temp %}\n{% set extruder_temp = printer.custom_macro.g28_ext_temp %}\n{% set nozzle_clear_temp = printer.custom_macro.default_extruder_temp %}\n\n{% if \'BED_TEMP\' in params|upper %}\n{% set bed_temp = params.BED_TEMP %}\n{% endif %}\n\n{% if \'EXTRUDER_TEMP\' in params|upper %}\n{% set nozzle_clear_temp = params.EXTRUDER_TEMP %}\n{% endif %}\nSET_FILAMENT_SENSOR SENSOR=filament_sensor ENABLE=0\nSET_FILAMENT_SENSOR SENSOR=filament_sensor_2 ENABLE=0\n\nG28\nBED_MESH_CLEAR\nNOZZLE_CLEAR HOT_MIN_TEMP={extruder_temp} HOT_MAX_TEMP={nozzle_clear_temp} BED_MAX_TEMP={bed_temp}\nACCURATE_G28\nM204 S5000\nSET_VELOCITY_LIMIT ACCEL_TO_DECEL=5000\nBED_MESH_CALIBRATE {get_count}\nBED_MESH_OUTPUT\n{% set y_park = printer.toolhead.axis_maximum.y/2 %}\n{% set x_park = printer.toolhead.axis_maximum.x|float - 10.0 %}\nG1 X{x_park} Y{y_park} F2000\nCXSAVE_CONFIG\nTURN_OFF_HEATERS\nSET_FILAMENT_SENSOR SENSOR=filament_sensor ENABLE=1\nSET_FILAMENT_SENSOR SENSOR=filament_sensor_2 ENABLE=1', 'description': 'G-Code macro'}, 'fan_feedback': {'print_delay_time': 5.0, 'current_delay_time': 2.0, 'fan0_pin': 'nozzle_mcu:PB4', 'fan1_pin': 'PC6'}, 'custom_macro': {'default_extruder_temp': 240.0, 'default_bed_temp': 50.0, 'g28_ext_temp': 140.0, 'nozzle_clear': True, 'calibration': 0}, 'verify_heater extruder': {'hysteresis': 5.0, 'max_error': 120.0, 'heating_gain': 2.0, 'check_gain_time': 20.0}, 'verify_heater heater_bed': {'hysteresis': 10.0, 'max_error': 120.0, 'heating_gain': 1.0, 'check_gain_time': 120.0}, 'bl24c16f': {'i2c_mcu': 'rpi', 'i2c_speed': 400000, 'i2c_bus': 'i2c.2', 'i2c_address': 87}, 'idle_timeout': {'timeout': 99999999.0, 'gcode': "\n{% if 'heaters' in printer %}\n   TURN_OFF_HEATERS\n{% endif %}\nM84\n"}, 'virtual_sdcard': {'path': '/usr/data/printer_data/gcodes', 'on_error_gcode': ''}, 'gcode_arcs': {'resolution': 1.0}, 'temperature_sensor mcu_temp': {'sensor_type': 'temperature_mcu', 'sensor_mcu': 'mcu', 'min_temp': 0.0, 'max_temp': 100.0}, 'temperature_sensor chamber_temp': {'sensor_type': 'EPCOS 100K B57560G104F', 'pullup_resistor': 4700.0, 'inline_resistor': 0.0, 'sensor_pin': 'PC5', 'min_temp': 0.0, 'max_temp': 125.0}, 'duplicate_pin_override': {'pins': ('PC0', 'PC5')}, 'temperature_fan chamber_fan': {'max_power': 1.0, 'kick_start_time': 0.1, 'off_below': 0.0, 'cycle_time': 0.01, 'hardware_pwm': False, 'shutdown_speed': 0.0, 'pin': 'PC0', 'min_temp': 0.0, 'max_temp': 70.0, 'sensor_type': 'EPCOS 100K B57560G104F', 'pullup_resistor': 4700.0, 'inline_resistor': 0.0, 'sensor_pin': 'PC5', 'max_speed': 1.0, 'min_speed': 0.0, 'target_temp': 35.0, 'control': 'watermark', 'max_delta': 2.0}, 'tmc2209 stepper_x': {'uart_pin': 'PA9', 'uart_address': 3, 'diag_pin': '^PB12', 'run_current': 1.5, 'hold_current': 1.0, 'sense_resistor': 0.1, 'interpolate': True, 'stealthchop_threshold': 0.0, 'driver_toff': 1, 'driver_hstrt': 0, 'driver_hend': 0, 'driver_tbl': 0, 'driver_iholddelay': 8, 'driver_tpowerdown': 20, 'driver_pwm_ofs': 36, 'driver_pwm_grad': 14, 'driver_pwm_freq': 1, 'driver_pwm_autoscale': True, 'driver_pwm_autograd': True, 'driver_pwm_reg': 8, 'driver_pwm_lim': 12, 'driver_sgthrs': 75}, 'stepper_x': {'microsteps': 32, 'step_pin': 'PC2', 'dir_pin': '!PB9', 'rotation_distance': 40.0, 'full_steps_per_rotation': 200, 'gear_ratio': (), 'enable_pin': '!PC3', 'endstop_pin': 'tmc2209_stepper_x:virtual_endstop', 'position_endstop': 306.5, 'position_min': -2.0, 'position_max': 306.5, 'homing_speed': 30.0, 'second_homing_speed': 15.0, 'homing_retract_speed': 30.0, 'homing_retract_dist': 0.0, 'homing_positive_dir': True}, 'tmc2209 stepper_y': {'uart_pin': 'PA10', 'uart_address': 3, 'diag_pin': '^PB13', 'run_current': 1.5, 'hold_current': 1.0, 'sense_resistor': 0.1, 'interpolate': True, 'stealthchop_threshold': 0.0, 'driver_toff': 1, 'driver_hstrt': 0, 'driver_hend': 0, 'driver_tbl': 0, 'driver_iholddelay': 8, 'driver_tpowerdown': 20, 'driver_pwm_ofs': 36, 'driver_pwm_grad': 14, 'driver_pwm_freq': 1, 'driver_pwm_autoscale': True, 'driver_pwm_autograd': True, 'driver_pwm_reg': 8, 'driver_pwm_lim': 12, 'driver_sgthrs': 75}, 'stepper_y': {'microsteps': 32, 'step_pin': 'PB8', 'dir_pin': '!PB7', 'rotation_distance': 40.0, 'full_steps_per_rotation': 200, 'gear_ratio': (), 'enable_pin': '!PC3', 'endstop_pin': 'tmc2209_stepper_y:virtual_endstop', 'position_endstop': -2.0, 'position_min': -2.0, 'position_max': 306.0, 'homing_speed': 30.0, 'second_homing_speed': 15.0, 'homing_retract_speed': 30.0, 'homing_retract_dist': 0.0, 'homing_positive_dir': False}, 'tmc2209 stepper_z': {'uart_pin': 'PA11', 'uart_address': 3, 'diag_pin': '^PB14', 'run_current': 0.8, 'hold_current': 2.0, 'sense_resistor': 0.1, 'interpolate': True, 'stealthchop_threshold': 0.0, 'driver_toff': 3, 'driver_hstrt': 5, 'driver_hend': 0, 'driver_tbl': 2, 'driver_iholddelay': 8, 'driver_tpowerdown': 20, 'driver_pwm_ofs': 36, 'driver_pwm_grad': 14, 'driver_pwm_freq': 1, 'driver_pwm_autoscale': True, 'driver_pwm_autograd': True, 'driver_pwm_reg': 8, 'driver_pwm_lim': 12, 'driver_sgthrs': 0}, 'stepper_z': {'microsteps': 16, 'position_max': 305.0, 'position_min': -10.0, 'step_pin': 'PB6', 'dir_pin': '!PB5', 'rotation_distance': 8.0, 'full_steps_per_rotation': 200, 'gear_ratio': ((64.0, 20.0),), 'enable_pin': '!PC3', 'endstop_pin': 'tmc2209_stepper_z:virtual_endstop', 'position_endstop': 0.0, 'homing_speed': 10.0, 'second_homing_speed': 1.0, 'homing_retract_speed': 10.0, 'homing_retract_dist': 2.0, 'homing_positive_dir': False}, 'tmc2209 extruder': {'uart_pin': 'nozzle_mcu:PB11', 'tx_pin': 'nozzle_mcu:PB10', 'uart_address': 3, 'run_current': 0.55, 'hold_current': 2.0, 'sense_resistor': 0.15, 'interpolate': True, 'stealthchop_threshold': 0.0, 'driver_toff': 3, 'driver_hstrt': 5, 'driver_hend': 0, 'driver_tbl': 2, 'driver_iholddelay': 8, 'driver_tpowerdown': 20, 'driver_pwm_ofs': 36, 'driver_pwm_grad': 14, 'driver_pwm_freq': 1, 'driver_pwm_autoscale': True, 'driver_pwm_autograd': True, 'driver_pwm_reg': 8, 'driver_pwm_lim': 12, 'driver_sgthrs': 0}, 'extruder': {'microsteps': 16, 'sensor_type': 'EPCOS 100K B57560G104F', 'pullup_resistor': 4700.0, 'inline_resistor': 0.0, 'sensor_pin': 'nozzle_mcu:PA0', 'min_temp': 0.0, 'max_temp': 320.0, 'min_extrude_temp': 170.0, 'max_power': 1.0, 'smooth_time': 1.0, 'control': 'pid', 'pid_kp': 25.013, 'pid_ki': 2.566, 'pid_kd': 60.966, 'heater_pin': 'nozzle_mcu:PB7', 'pwm_cycle_time': 0.1, 'nozzle_diameter': 0.4, 'filament_diameter': 1.75, 'max_extrude_cross_section': 80.0, 'max_extrude_only_velocity': 212.86486429531544, 'max_extrude_only_accel': 5321.6216073828855, 'max_extrude_only_distance': 1000.0, 'instantaneous_corner_velocity': 1.0, 'step_pin': 'nozzle_mcu:PB1', 'pressure_advance': 0.04, 'pressure_advance_smooth_time': 0.04, 'dir_pin': 'nozzle_mcu:PB0', 'rotation_distance': 6.9, 'full_steps_per_rotation': 200, 'gear_ratio': (), 'enable_pin': '!nozzle_mcu:PB2'}, 'heater_bed': {'sensor_type': 'EPCOS 100K B57560G104F', 'pullup_resistor': 4700.0, 'inline_resistor': 0.0, 'sensor_pin': 'PC4', 'min_temp': 0.0, 'max_temp': 125.0, 'min_extrude_temp': 170.0, 'max_power': 1.0, 'smooth_time': 1.0, 'control': 'pid', 'pid_kp': 37.0, 'pid_ki': 0.18, 'pid_kd': 280.0, 'heater_pin': 'PC8', 'pwm_cycle_time': 0.1}, 'filament_switch_sensor filament_sensor': {'switch_pin': '!PC15', 'pause_on_runout': True, 'runout_gcode': "\n{% if printer.extruder.can_extrude|lower == 'true' %}\nG91\nG0 E30 F600\nG90\n{% endif %}", 'pause_delay': 0.5, 'event_delay': 3.0}, 'pause_resume': {'recover_velocity': 50.0}, 'filament_switch_sensor filament_sensor_2': {'switch_pin': '!nozzle_mcu:PA10', 'pause_on_runout': True, 'runout_gcode': '', 'pause_delay': 0.5, 'event_delay': 3.0}, 'multi_pin heater_fans': {'pins': ('nozzle_mcu:PB5', 'PB2')}, 'heater_fan hotend_fan': {'heater': ('extruder',), 'heater_temp': 40.0, 'max_power': 1.0, 'kick_start_time': 0.1, 'off_below': 0.0, 'cycle_time': 0.01, 'hardware_pwm': False, 'shutdown_speed': 1.0, 'pin': 'multi_pin:heater_fans', 'fan_speed': 1.0}, 'static_digital_output my_fan_output_pins': {'pins': ('nozzle_mcu: PB6',)}, 'output_pin fan0': {'pwm': True, 'pin': '!nozzle_mcu: PB8', 'cycle_time': 0.01, 'hardware_pwm': False, 'scale': 255.0, 'maximum_mcu_duration': 0.0, 'value': 0.0, 'shutdown_value': 0.0}, 'output_pin fan1': {'pwm': True, 'pin': 'PC0', 'cycle_time': 0.01, 'hardware_pwm': False, 'scale': 255.0, 'maximum_mcu_duration': 0.0, 'value': 0.0, 'shutdown_value': 0.0}, 'output_pin fan2': {'pwm': True, 'pin': 'PB1', 'cycle_time': 0.01, 'hardware_pwm': False, 'scale': 255.0, 'maximum_mcu_duration': 0.0, 'value': 0.0, 'shutdown_value': 0.0}, 'output_pin led': {'pwm': True, 'pin': 'PB0', 'cycle_time': 0.01, 'hardware_pwm': False, 'scale': 1.0, 'maximum_mcu_duration': 0.0, 'value': 1.0, 'shutdown_value': 0.0}, 'output_pin power': {'pwm': False, 'pin': 'PC9', 'maximum_mcu_duration': 0.0, 'value': 0.0, 'shutdown_value': 0.0}, 'adxl345': {'axes_map': ('x', '-z', 'y'), 'rate': 3200, 'cs_pin': 'nozzle_mcu:PA4', 'spi_speed': 5000000, 'spi_software_sclk_pin': 'nozzle_mcu:PA5', 'spi_software_miso_pin': 'nozzle_mcu:PA6', 'spi_software_mosi_pin': 'nozzle_mcu:PA7'}, 'resonance_tester': {'move_speed': 50.0, 'min_freq': 5.0, 'max_freq': 133.33333333333334, 'accel_per_hz': 75.0, 'hz_per_sec': 1.0, 'probe_points': ((150.0, 150.0, 10.0),), 'low_mem': True, 'accel_chip': 'adxl345'}, 'prtouch_v2': {'pr_version': 2, 'tri_min_hold_1': (6000, 10000), 'tri_max_hold_1': (13000, 60000), 'tri_min_hold_2': (6000, 10000), 'tri_max_hold_2': (13000, 60000), 'tri_min_hold_3': (6000, 10000), 'tri_max_hold_3': (13000, 60000), 'tri_min_hold_4': (6000, 10000), 'tri_max_hold_4': (13000, 60000), 'tri_min_hold_5': (6000, 10000), 'tri_max_hold_5': (13000, 60000), 'tri_min_hold_6': (6000, 10000), 'tri_max_hold_6': (13000, 60000), 'tri_min_hold_7': (6000, 10000), 'tri_max_hold_7': (13000, 60000), 'tri_min_hold_8': (6000, 10000), 'tri_max_hold_8': (13000, 60000), 'tri_min_hold_9': (6000, 10000), 'tri_max_hold_9': (13000, 60000), 'tri_min_hold_10': (6000, 10000), 'tri_max_hold_10': (13000, 60000), 'tri_min_hold_11': (6000, 10000), 'tri_max_hold_11': (13000, 60000), 'tri_min_hold_12': (6000, 10000), 'tri_max_hold_12': (13000, 60000), 'tri_min_hold_13': (6000, 10000), 'tri_max_hold_13': (13000, 60000), 'tri_min_hold_14': (6000, 10000), 'tri_max_hold_14': (13000, 60000), 'tri_min_hold_15': (6000, 10000), 'tri_max_hold_15': (13000, 60000), 'tri_min_hold_16': (6000, 10000), 'tri_max_hold_16': (13000, 60000), 'tri_min_hold_17': (6000, 10000), 'tri_max_hold_17': (13000, 60000), 'tri_min_hold_18': (6000, 10000), 'tri_max_hold_18': (13000, 60000), 'tri_min_hold_19': (6000, 10000), 'tri_max_hold_19': (13000, 60000), 'tri_min_hold_20': (6000, 10000), 'tri_max_hold_20': (13000, 60000), 'tri_min_hold_21': (6000, 10000), 'tri_max_hold_21': (13000, 60000), 'tri_min_hold_22': (6000, 10000), 'tri_max_hold_22': (13000, 60000), 'tri_min_hold_23': (6000, 10000), 'tri_max_hold_23': (13000, 60000), 'tri_min_hold_24': (6000, 10000), 'tri_max_hold_24': (13000, 60000), 'tri_min_hold_25': (6000, 10000), 'tri_max_hold_25': (13000, 60000), 'tri_min_hold_26': (6000, 10000), 'tri_max_hold_26': (13000, 60000), 'tri_min_hold_27': (6000, 10000), 'tri_max_hold_27': (13000, 60000), 'tri_min_hold_28': (6000, 10000), 'tri_max_hold_28': (13000, 60000), 'tri_min_hold_29': (6000, 10000), 'tri_max_hold_29': (13000, 60000), 'tri_min_hold_30': (6000, 10000), 'tri_max_hold_30': (13000, 60000), 'tri_min_hold_31': (6000, 10000), 'tri_max_hold_31': (13000, 60000), 'tri_min_hold_32': (6000, 10000), 'tri_max_hold_32': (13000, 60000), 'tri_min_hold_33': (6000, 10000), 'tri_max_hold_33': (13000, 60000), 'tri_min_hold_34': (6000, 10000), 'tri_max_hold_34': (13000, 60000), 'tri_min_hold_35': (6000, 10000), 'tri_max_hold_35': (13000, 60000), 'tri_min_hold_36': (6000, 10000), 'tri_max_hold_36': (13000, 60000), 'use_adc': False, 'tri_acq_ms': 12, 'tri_send_ms': 10, 'tri_need_cnt': 1, 'tri_try_max_times': 10, 'cal_hftr_cut': 10, 'cal_lftr_k1': 0.85, 'tri_min_hold': (6000, 10000), 'tri_max_hold': (13000, 60000), 'tri_hftr_cut': (2.0, 1.0), 'tri_lftr_k1': (0.5, 0.15), 'correct_tri_hold': 0, 'correct_step_mm': 0.04, 'show_msg': False, 'shake_cnt': 8, 'shake_range': 0.5, 'hot_min_temp': 140, 'hot_max_temp': 200, 'bed_max_temp': 60, 'pa_clr_dis_mm': 30, 'pa_clr_down_mm': -0.15, 'clr_noz_start_x': 130.0, 'clr_noz_start_y': 303.0, 'clr_noz_len_x': 40.0, 'clr_noz_len_y': 2.0, 'clr_xy_spd': 2.0, 'speeds': (2.5, 1.0), 'lift_speed': 5.0, 'rdy_xy_spd': 200, 'rdy_z_spd': 5.0, 'acc_ctl_mm': 0.25, 'low_spd_nul': 5, 'send_step_duty': 16, 'run_max_velocity': 500, 'run_max_accel': 500, 'run_max_z_velocity': 20, 'run_max_z_accel': 200, 'check_bed_mesh_max_err': 0.2, 'need_self_check': True, 'bed_max_err': 5, 'g29_down_min_z': 25, 'probe_min_3err': 0.1, 'step_base': 2, 'g28_wait_cool_down': True, 'best_above_z': 3, 'safe_z_dead_dis': 2, 'fan_heat_min_spd': 0.3, 'fan_heat_max_spd': 1.0, 'lost_step_dis': 0.5, 'tilt_corr_dis': 0.05, 'bed_mesh_top_mid_com': 0.0, 'bed_mesh_bottom_mid_com': 0.0, 'bed_mesh_left_mid_com': 0.0, 'bed_mesh_right_mid_com': 0.0, 'noz_ex_com': 0.09, 'sys_time_duty': 0.001, 'shake_sample_num': 100, 'shake_z_velocity': 100, 'shake_z_accel': 500, 'shake_num': 20, 'check_std_max': 6000, 'check_std_mim': 250, 'step_swap_pin': 'PC10', 'pres_swap_pin': 'leveling_mcu:PB1', 'pres_cnt': 4, 'pres0_clk_pins': 'leveling_mcu:PA7', 'pres0_sdo_pins': 'leveling_mcu:PA4', 'pres1_clk_pins': 'leveling_mcu:PA6', 'pres1_sdo_pins': 'leveling_mcu:PA3', 'pres2_clk_pins': 'leveling_mcu:PA2', 'pres2_sdo_pins': 'leveling_mcu:PA0', 'pres3_clk_pins': 'leveling_mcu:PA5', 'pres3_sdo_pins': 'leveling_mcu:PA1', 'speed': 5.0, 'x_offset': 0.0, 'y_offset': 0.0, 'z_offset': 0.0, 'samples': 1, 'sample_retract_dist': 2.0, 'samples_result': 'average', 'samples_tolerance': 0.1, 'samples_tolerance_retries': 0}, 'printer': {'kinematics': 'corexy', 'max_velocity': 800.0, 'max_accel': 20000.0, 'max_accel_to_decel': 20000.0, 'square_corner_velocity': 5.0, 'square_corner_max_velocity': 200.0, 'buffer_time_low': 1.0, 'buffer_time_high': 2.0, 'buffer_time_start': 0.25, 'move_flush_time': 0.05, 'max_z_velocity': 20.0, 'max_z_accel': 300.0}, 'bed_mesh': {'probe_count': (6, 6), 'mesh_min': (5.0, 5.0), 'mesh_max': (295.0, 295.0), 'mesh_pps': (2, 2), 'algorithm': 'lagrange', 'bicubic_tension': 0.2, 'horizontal_move_z': 5.0, 'speed': 150.0, 'fade_start': 5.0, 'fade_end': 50.0, 'split_delta_z': 0.025, 'move_check_distance': 5.0}}, 'warnings': [], 'save_config_pending': False, 'save_config_pending_items': {}}, 'mcu': {'mcu_version': '1.3.0.40-5-g6977eaff-dirty-20230711_100121-ubuntu', 'mcu_build_versions': 'gcc: (15:9-2019-q4-0ubuntu1) 9.2.1 20191025 (release) [ARM/arm-9-branch revision 277599] binutils: (2.34-4ubuntu1+13ubuntu1) 2.34', 'mcu_constants': {'ADC_MAX': 4095, 'CLOCK_FREQ': 120000000, 'INITIAL_PINS': 'PC7,PB0', 'MCU': 'gd32f303xe', 'RECEIVE_WINDOW': 192, 'RESERVE_PINS_serial': 'PA2,PA3', 'SERIAL_BAUD': 230400, 'STATS_SUMSQ_BASE': 256, 'STEPPER_BOTH_EDGE': 1, 'build_machine_uid': 'Jul 11 202310:01:16'}, 'last_stats': {'mcu_awake': 0.001, 'mcu_task_avg': 1e-05, 'mcu_task_stddev': 6e-06, 'bytes_write': 2117, 'bytes_read': 5528, 'bytes_retransmit': 9, 'bytes_invalid': 0, 'send_seq': 198, 'receive_seq': 198, 'retransmit_seq': 17, 'srtt': 0.001, 'rttvar': 0.0, 'rto': 0.025, 'ready_bytes': 0, 'stalled_bytes': 0, 'freq': 119989950}}, 'mcu nozzle_mcu': {'mcu_version': '1.3.0.40-5-g6977eaff-dirty-20230711_100254-ubuntu', 'mcu_build_versions': 'gcc: (15:9-2019-q4-0ubuntu1) 9.2.1 20191025 (release) [ARM/arm-9-branch revision 277599] binutils: (2.34-4ubuntu1+13ubuntu1) 2.34', 'mcu_constants': {'ADC_MAX': 4095, 'CLOCK_FREQ': 120000000, 'INITIAL_PINS': '!PB5,!PB6,!PB7', 'MCU': 'gd32f303xb', 'RECEIVE_WINDOW': 192, 'RESERVE_PINS_serial': 'PA2,PA3', 'SERIAL_BAUD': 230400, 'STATS_SUMSQ_BASE': 256, 'STEPPER_BOTH_EDGE': 1, 'build_machine_uid': 'Jul 11 202310:02:50'}, 'last_stats': {'mcu_awake': 0.0, 'mcu_task_avg': 0.0, 'mcu_task_stddev': 0.0, 'bytes_write': 1301, 'bytes_read': 4740, 'bytes_retransmit': 0, 'bytes_invalid': 0, 'send_seq': 141, 'receive_seq': 141, 'retransmit_seq': 0, 'srtt': 0.001, 'rttvar': 0.0, 'rto': 0.025, 'ready_bytes': 0, 'stalled_bytes': 0, 'freq': 119997946, 'adj': 120024660}}, 'mcu leveling_mcu': {'mcu_version': '1.3.0.40-5-g6977eaff-dirty-20230711_095416-ubuntu', 'mcu_build_versions': 'gcc: (15:9-2019-q4-0ubuntu1) 9.2.1 20191025 (release) [ARM/arm-9-branch revision 277599] binutils: (2.34-4ubuntu1+13ubuntu1) 2.34', 'mcu_constants': {'ADC_MAX': 4095, 'CLOCK_FREQ': 72000000, 'MCU': 'gd32e230x8', 'RECEIVE_WINDOW': 192, 'RESERVE_PINS_serial': 'PA9,PA10', 'SERIAL_BAUD': 230400, 'STATS_SUMSQ_BASE': 256, 'STEPPER_BOTH_EDGE': 1, 'build_machine_uid': 'Jul 11 202309:54:12'}, 'last_stats': {'mcu_awake': 0.0, 'mcu_task_avg': 0.0, 'mcu_task_stddev': 0.0, 'bytes_write': 804, 'bytes_read': 4371, 'bytes_retransmit': 9, 'bytes_invalid': 0, 'send_seq': 107, 'receive_seq': 107, 'retransmit_seq': 17, 'srtt': 0.002, 'rttvar': 0.001, 'rto': 0.025, 'ready_bytes': 0, 'stalled_bytes': 0, 'freq': 71886931, 'adj': 71998004}}, 'mcu rpi': {'mcu_version': 'v0.11.0-372-gb9ad7605', 'mcu_build_versions': 'gcc: (Ingenic Linux-Release5.1.0-Default(xburst2(fp64)+glibc2.29) 2021.12-22 10:52:10) 7.2.0 binutils: (Ingenic Linux-Release5.1.0.-Default(xburst2(fp64)+glibc2.29) 2021.12-22 08:55:37) 2.27', 'mcu_constants': {'ADC_MAX': 4095, 'CLOCK_FREQ': 50000000, 'MCU': 'linux', 'PCA9685_MAX': 4096, 'PWM_MAX': 32768, 'STATS_SUMSQ_BASE': 256, 'build_machine_uid': 'May 18 202311:46:31'}, 'last_stats': {'mcu_awake': 0.0, 'mcu_task_avg': 0.0, 'mcu_task_stddev': 0.0, 'bytes_write': 894, 'bytes_read': 4505, 'bytes_retransmit': 0, 'bytes_invalid': 0, 'send_seq': 117, 'receive_seq': 117, 'retransmit_seq': 0, 'srtt': 0.0, 'rttvar': 0.0, 'rto': 0.025, 'ready_bytes': 0, 'stalled_bytes': 0, 'freq': 50000834, 'adj': 50007564}}, 'gcode_macro xyz_ready': {'x_ready': 0, 'y_ready': 0, 'z_ready': 0, 'xy_moved': 0, 'z_moved': 0, 'safe_z': 3}, 'gcode_macro _IF_HOME_Z': {}, 'gcode_macro _IF_MOVE_XY': {}, 'gcode_macro _HOME_X': {}, 'gcode_macro _HOME_Y': {}, 'gcode_macro _HOME_Z': {}, 'gcode_macro PRINTER_PARAM': {'z_safe_pause': 0.0, 'z_safe_g28': 3.0, 'max_x_position': 300.0, 'max_y_position': 300.0, 'max_z_position': 300.0, 'fans': 3, 'auto_g29': 0, 'fan0_min': 25, 'fan1_min': 50, 'fan2_min': 180, 'fan2_speed': 0, 'hotend_temp': 0, 'e_min_current': 0.27, 'cam_off_temp': 60}, 'gcode_macro AUTOTUNE_SHAPERS': {'autotune_shapers': 'ei'}, 'gcode_macro LOAD_MATERIAL_CLOSE_FAN2': {'fan2_value': 0}, 'gcode_macro LOAD_MATERIAL_RESTORE_FAN2': {}, 'gcode_macro SET_E_MIN_CURRENT': {}, 'gcode_macro RESTORE_E_CURRENT': {}, 'gcode_macro LOAD_MATERIAL': {}, 'gcode_macro QUIT_MATERIAL': {}, 'gcode_macro Qmode': {'flag': 0, 'accel': 0, 'accel_to_decel': 0, 'velocity': 0, 'square_corner_velocity': 0, 'pressure_advance': 0.0, 'fan0_value': 0.0, 'fan1_value': 0.0, 'fan2_value': 0.0, 'speed_factor': 0, 'max_accel': 2500, 'max_accel_to_decel': 2500}, 'gcode_macro Qmode_exit': {}, 'gcode_macro M204': {}, 'gcode_macro M205': {}, 'gcode_macro M106': {}, 'gcode_macro M107': {}, 'gcode_macro M141': {}, 'gcode_macro M900': {}, 'gcode_macro WAIT_TEMP_START': {}, 'gcode_macro WAIT_TEMP_END': {}, 'gcode_macro PRINT_CALIBRATION': {}, 'gcode_macro FIRST_FLOOR_PAUSE_POSITION': {}, 'gcode_macro ACCURATE_G28': {}, 'gcode_macro START_PRINT': {'prepare': 0}, 'gcode_macro PRINT_PREPARED': {}, 'gcode_macro PRINT_PREPARE_CLEAR': {}, 'gcode_macro END_PRINT_POINT_WITHOUT_LIFTING': {}, 'gcode_macro END_PRINT_POINT': {}, 'gcode_macro END_PRINT': {}, 'gcode_macro FIRST_FLOOR_PAUSE': {'extrude': 2.0}, 'gcode_macro FIRST_FLOOR_RESUME': {}, 'gcode_macro PAUSE': {'extrude': 2.0}, 'gcode_macro INPUTSHAPER': {}, 'gcode_macro BEDPID': {}, 'gcode_macro TUNOFFINPUTSHAPER': {}, 'gcode_macro RESUME': {}, 'gcode_macro CANCEL_PRINT': {}, 'gcode_macro G29': {}, 'gcode_move': {'speed_factor': 1.0, 'speed': 1500.0, 'extrude_factor': 1.0, 'absolute_coordinates': True, 'absolute_extrude': True, 'homing_origin': Coord(x=0.0, y=0.0, z=0.0, e=0.0), 'position': Coord(x=0.0, y=0.0, z=0.0, e=0.0), 'gcode_position': Coord(x=0.0, y=0.0, z=0.0, e=0.0)}, 'print_stats': {'filename': '', 'total_duration': 0.0, 'print_duration': 0.0, 'filament_used': 0.0, 'state': 'standby', 'message': '', 'info': {'total_layer': None, 'current_layer': None}, 'power_loss': 0, 'z_pos': 150.1022782557148}, 'fan_feedback': {'fan0_speed': 0, 'fan1_speed': 0, 'fan2_speed': 0, 'fan3_speed': 0, 'fan4_speed': 0}, 'custom_macro': {'leveling_calibration': 0, 'default_extruder_temp': 240.0, 'default_bed_temp': 50.0, 'g28_ext_temp': 140.0, 'qmode_flag': 0}, 'idle_timeout': {'state': 'Printing', 'printing_time': 0.40974766699999776}, 'virtual_sdcard': {'file_path': None, 'progress': 0.0, 'is_active': False, 'file_position': 0, 'file_size': 0, 'first_layer_stop': False, 'layer': 0, 'layer_count': 0, 'run_dis': 0.0}, 'heaters': {'available_heaters': ['heater_bed', 'extruder'], 'available_sensors': ['temperature_sensor mcu_temp', 'temperature_sensor chamber_temp', 'temperature_fan chamber_fan', 'heater_bed', 'extruder'], 'extruder_temperature_wait': False, 'bed_temperature_wait': False}, 'temperature_sensor mcu_temp': {'temperature': 24.52, 'measured_min_temp': 24.23, 'measured_max_temp': 24.57}, 'temperature_sensor chamber_temp': {'temperature': 18.43, 'measured_min_temp': 18.39, 'measured_max_temp': 18.45}, 'temperature_fan chamber_fan': {'speed': 0.0, 'rpm': None, 'temperature': 18.39, 'target': 35.0}, 'tmc2209 stepper_x': {'mcu_phase_offset': 1, 'phase_offset_position': 0.00625, 'run_current': 1.4731391274719736, 'hold_current': 1.0017346066809423, 'drv_status': None}, 'tmc2209 stepper_y': {'mcu_phase_offset': 1, 'phase_offset_position': 0.00625, 'run_current': 1.4731391274719736, 'hold_current': 1.0017346066809423, 'drv_status': None}, 'tmc2209 stepper_z': {'mcu_phase_offset': 1, 'phase_offset_position': 0.00078125, 'run_current': 0.7954951288348658, 'hold_current': 0.7954951288348658, 'drv_status': None}, 'tmc2209 extruder': {'mcu_phase_offset': 63, 'phase_offset_position': 0.13584375, 'run_current': 0.5615259732951996, 'hold_current': 0.5615259732951996, 'drv_status': None}, 'heater_bed': {'temperature': 18.77, 'target': 0.0, 'power': 0.0}, 'pause_resume': {'is_paused': False}, 'filament_switch_sensor filament_sensor': {'filament_detected': True, 'enabled': True}, 'filament_switch_sensor filament_sensor_2': {'filament_detected': True, 'enabled': True}, 'heater_fan hotend_fan': {'speed': 0.0, 'rpm': None}, 'output_pin fan0': {'value': 0.0}, 'output_pin fan1': {'value': 0.0}, 'output_pin fan2': {'value': 0.0}, 'output_pin LED': {'value': 1.0}, 'output_pin power': {'value': 0.0}, 'probe': {'last_query': False, 'last_z_result': 0.0, 'z_offset': 0.0}, 'bed_mesh': {'profile_name': '', 'mesh_min': (0.0, 0.0), 'mesh_max': (0.0, 0.0), 'probed_matrix': [[]], 'mesh_matrix': [[]], 'profiles': {}}, 'display_status': {'progress': 0.0, 'message': None}, 'exclude_object': {'objects': [], 'excluded_objects': [], 'current_object': None}, 'motion_report': {'live_position': Coord(x=0.0, y=0.0, z=0.0, e=0.0), 'live_velocity': 0.0, 'live_extruder_velocity': 0.0, 'steppers': ['extruder', 'stepper_x', 'stepper_y', 'stepper_z'], 'trapq': ['extruder', 'toolhead']}, 'query_endstops': {'last_query': {}}, 'system_stats': {'sysload': 0.66, 'cputime': 11.913820275, 'memavail': 160720}, 'manual_probe': {'is_active': False, 'z_position': None, 'z_position_lower': None, 'z_position_upper': None}, 'toolhead': {'homed_axes': '', 'axis_minimum': Coord(x=-2.0, y=-2.0, z=-10.0, e=0.0), 'axis_maximum': Coord(x=306.5, y=306.0, z=305.0, e=0.0), 'print_time': 25.925084308333332, 'stalls': 0, 'estimated_print_time': 25.881559458333335, 'extruder': 'extruder', 'position': Coord(x=0.0, y=0.0, z=0.0, e=0.0), 'max_velocity': 800.0, 'max_accel': 20000.0, 'max_accel_to_decel': 20000.0, 'square_corner_velocity': 5.0}, 'extruder': {'temperature': 18.28, 'target': 0.0, 'power': 0.0, 'can_extrude': False, 'pressure_advance': 0.04, 'smooth_time': 0.04}}}
+[INFO] 2020-03-01 20:01:33,097 [root] [statistics:generate_stats:68] Stats 34.0: gcodein=0  mcu: mcu_awake=0.004 mcu_task_avg=0.000011 mcu_task_stddev=0.000048 bytes_write=2151 bytes_read=6043 bytes_retransmit=9 bytes_invalid=0 send_seq=203 receive_seq=203 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119993401 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000008 mcu_task_stddev=0.000029 bytes_write=1335 bytes_read=4940 bytes_retransmit=0 bytes_invalid=0 send_seq=146 receive_seq=146 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998862 adj=119992216 leveling_mcu: mcu_awake=0.006 mcu_task_avg=0.000038 mcu_task_stddev=0.000100 bytes_write=822 bytes_read=4434 bytes_retransmit=9 bytes_invalid=0 send_seq=110 receive_seq=110 retransmit_seq=17 srtt=0.002 rttvar=0.001 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71852562 adj=71844865 rpi: mcu_awake=0.004 mcu_task_avg=0.000028 mcu_task_stddev=0.000022 bytes_write=922 bytes_read=4568 bytes_retransmit=0 bytes_invalid=0 send_seq=121 receive_seq=120 retransmit_seq=0 srtt=0.000 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=50000629 adj=50002970  mcu_temp: temp=24.5 chamber_temp: temp=18.4 heater_bed: target=0 temp=18.8 pwm=0.000 sysload=0.66 cputime=12.124 memavail=158728 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.2 pwm=0.000
+[INFO] 2020-03-01 20:01:36,099 [root] [statistics:generate_stats:68] Stats 37.0: gcodein=0  mcu: mcu_awake=0.004 mcu_task_avg=0.000011 mcu_task_stddev=0.000048 bytes_write=2185 bytes_read=6725 bytes_retransmit=9 bytes_invalid=0 send_seq=208 receive_seq=208 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119994514 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000008 mcu_task_stddev=0.000029 bytes_write=1369 bytes_read=5172 bytes_retransmit=0 bytes_invalid=0 send_seq=151 receive_seq=151 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998609 adj=119996996 leveling_mcu: mcu_awake=0.006 mcu_task_avg=0.000038 mcu_task_stddev=0.000100 bytes_write=840 bytes_read=4482 bytes_retransmit=9 bytes_invalid=0 send_seq=113 receive_seq=113 retransmit_seq=17 srtt=0.001 rttvar=0.001 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71842675 adj=71800178 rpi: mcu_awake=0.004 mcu_task_avg=0.000028 mcu_task_stddev=0.000022 bytes_write=940 bytes_read=4630 bytes_retransmit=0 bytes_invalid=0 send_seq=124 receive_seq=124 retransmit_seq=0 srtt=0.001 rttvar=0.002 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=49999932 adj=50000224  mcu_temp: temp=24.7 chamber_temp: temp=18.5 heater_bed: target=0 temp=18.8 pwm=0.000 sysload=0.60 cputime=12.271 memavail=155492 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.3 pwm=0.000
+[INFO] 2020-03-01 20:01:39,100 [root] [statistics:generate_stats:68] Stats 40.0: gcodein=0  mcu: mcu_awake=0.003 mcu_task_avg=0.000008 mcu_task_stddev=0.000004 bytes_write=2211 bytes_read=7405 bytes_retransmit=9 bytes_invalid=0 send_seq=212 receive_seq=212 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119995192 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000006 mcu_task_stddev=0.000004 bytes_write=1395 bytes_read=5401 bytes_retransmit=0 bytes_invalid=0 send_seq=155 receive_seq=155 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998777 adj=119998653 leveling_mcu: mcu_awake=0.000 mcu_task_avg=0.000004 mcu_task_stddev=0.000003 bytes_write=858 bytes_read=4543 bytes_retransmit=9 bytes_invalid=0 send_seq=116 receive_seq=116 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71837244 adj=71811560 rpi: mcu_awake=0.011 mcu_task_avg=0.000193 mcu_task_stddev=0.001356 bytes_write=958 bytes_read=4693 bytes_retransmit=0 bytes_invalid=0 send_seq=127 receive_seq=127 retransmit_seq=0 srtt=0.001 rttvar=0.001 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=50000299 adj=49999232  mcu_temp: temp=24.8 chamber_temp: temp=18.5 heater_bed: target=0 temp=18.8 pwm=0.000 sysload=0.60 cputime=12.420 memavail=155272 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.3 pwm=0.000
+[INFO] 2020-03-01 20:01:42,102 [root] [statistics:generate_stats:68] Stats 43.0: gcodein=0  mcu: mcu_awake=0.003 mcu_task_avg=0.000008 mcu_task_stddev=0.000004 bytes_write=2245 bytes_read=8083 bytes_retransmit=9 bytes_invalid=0 send_seq=217 receive_seq=217 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119995475 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000006 mcu_task_stddev=0.000004 bytes_write=1429 bytes_read=5633 bytes_retransmit=0 bytes_invalid=0 send_seq=160 receive_seq=160 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998674 adj=120000535 leveling_mcu: mcu_awake=0.000 mcu_task_avg=0.000004 mcu_task_stddev=0.000003 bytes_write=876 bytes_read=4591 bytes_retransmit=9 bytes_invalid=0 send_seq=119 receive_seq=119 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71835931 adj=71816252 rpi: mcu_awake=0.001 mcu_task_avg=0.000011 mcu_task_stddev=0.000015 bytes_write=976 bytes_read=4754 bytes_retransmit=0 bytes_invalid=0 send_seq=130 receive_seq=130 retransmit_seq=0 srtt=0.001 rttvar=0.001 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=50000242 adj=50001552  mcu_temp: temp=24.8 chamber_temp: temp=18.4 heater_bed: target=0 temp=18.8 pwm=0.000 sysload=0.56 cputime=12.563 memavail=155464 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.3 pwm=0.000
+[INFO] 2020-03-01 20:01:45,102 [root] [statistics:generate_stats:68] Stats 46.0: gcodein=0  mcu: mcu_awake=0.003 mcu_task_avg=0.000008 mcu_task_stddev=0.000004 bytes_write=2271 bytes_read=8732 bytes_retransmit=9 bytes_invalid=0 send_seq=221 receive_seq=221 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119995700 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000006 mcu_task_stddev=0.000004 bytes_write=1455 bytes_read=5867 bytes_retransmit=0 bytes_invalid=0 send_seq=164 receive_seq=164 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998673 adj=120001030 leveling_mcu: mcu_awake=0.001 mcu_task_avg=0.000012 mcu_task_stddev=0.000061 bytes_write=894 bytes_read=4653 bytes_retransmit=9 bytes_invalid=0 send_seq=122 receive_seq=122 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71835972 adj=71827831 rpi: mcu_awake=0.001 mcu_task_avg=0.000011 mcu_task_stddev=0.000015 bytes_write=994 bytes_read=4802 bytes_retransmit=0 bytes_invalid=0 send_seq=133 receive_seq=133 retransmit_seq=0 srtt=0.001 rttvar=0.001 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=50000080 adj=50001322  mcu_temp: temp=24.9 chamber_temp: temp=18.5 heater_bed: target=0 temp=18.8 pwm=0.000 sysload=0.51 cputime=12.700 memavail=155476 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.1 pwm=0.000
+[INFO] 2020-03-01 20:01:48,102 [root] [statistics:generate_stats:68] Stats 49.0: gcodein=0  mcu: mcu_awake=0.003 mcu_task_avg=0.000008 mcu_task_stddev=0.000004 bytes_write=2305 bytes_read=9429 bytes_retransmit=9 bytes_invalid=0 send_seq=226 receive_seq=226 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119995860 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000006 mcu_task_stddev=0.000004 bytes_write=1489 bytes_read=6113 bytes_retransmit=0 bytes_invalid=0 send_seq=169 receive_seq=169 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998623 adj=120001450 leveling_mcu: mcu_awake=0.000 mcu_task_avg=0.000004 mcu_task_stddev=0.000003 bytes_write=912 bytes_read=4714 bytes_retransmit=9 bytes_invalid=0 send_seq=125 receive_seq=125 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71835291 adj=71835418 rpi: mcu_awake=0.001 mcu_task_avg=0.000009 mcu_task_stddev=0.000011 bytes_write=1012 bytes_read=4863 bytes_retransmit=0 bytes_invalid=0 send_seq=136 receive_seq=136 retransmit_seq=0 srtt=0.000 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=50000021 adj=50000677  mcu_temp: temp=25.0 chamber_temp: temp=18.4 heater_bed: target=0 temp=18.8 pwm=0.000 sysload=0.51 cputime=12.838 memavail=155416 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.3 pwm=0.000
+[INFO] 2020-03-01 20:01:51,104 [root] [statistics:generate_stats:68] Stats 52.0: gcodein=0  mcu: mcu_awake=0.003 mcu_task_avg=0.000008 mcu_task_stddev=0.000004 bytes_write=2331 bytes_read=10094 bytes_retransmit=9 bytes_invalid=0 send_seq=230 receive_seq=230 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119995995 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000006 mcu_task_stddev=0.000004 bytes_write=1515 bytes_read=6328 bytes_retransmit=0 bytes_invalid=0 send_seq=173 receive_seq=173 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998604 adj=120001571 leveling_mcu: mcu_awake=0.000 mcu_task_avg=0.000004 mcu_task_stddev=0.000003 bytes_write=930 bytes_read=4762 bytes_retransmit=9 bytes_invalid=0 send_seq=128 receive_seq=128 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71833892 adj=71833509 rpi: mcu_awake=0.001 mcu_task_avg=0.000009 mcu_task_stddev=0.000011 bytes_write=1036 bytes_read=4927 bytes_retransmit=0 bytes_invalid=0 send_seq=140 receive_seq=140 retransmit_seq=0 srtt=0.000 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=50000034 adj=50000993  mcu_temp: temp=25.1 chamber_temp: temp=18.5 heater_bed: target=0 temp=18.8 pwm=0.000 sysload=0.55 cputime=12.983 memavail=155532 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.2 pwm=0.000
+[INFO] 2020-03-01 20:01:54,104 [root] [statistics:generate_stats:68] Stats 55.0: gcodein=0  mcu: mcu_awake=0.004 mcu_task_avg=0.000008 mcu_task_stddev=0.000004 bytes_write=2365 bytes_read=10791 bytes_retransmit=9 bytes_invalid=0 send_seq=235 receive_seq=235 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119996098 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000006 mcu_task_stddev=0.000004 bytes_write=1549 bytes_read=6574 bytes_retransmit=0 bytes_invalid=0 send_seq=178 receive_seq=178 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998577 adj=120001468 leveling_mcu: mcu_awake=0.000 mcu_task_avg=0.000004 mcu_task_stddev=0.000003 bytes_write=948 bytes_read=4823 bytes_retransmit=9 bytes_invalid=0 send_seq=131 receive_seq=131 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71833024 adj=71827706 rpi: mcu_awake=0.001 mcu_task_avg=0.000010 mcu_task_stddev=0.000010 bytes_write=1054 bytes_read=4988 bytes_retransmit=0 bytes_invalid=0 send_seq=143 receive_seq=143 retransmit_seq=0 srtt=0.000 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=50000060 adj=50001266  mcu_temp: temp=25.1 chamber_temp: temp=18.4 heater_bed: target=0 temp=18.8 pwm=0.000 sysload=0.55 cputime=13.133 memavail=156076 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.1 pwm=0.000
+[INFO] 2020-03-01 20:01:57,104 [root] [statistics:generate_stats:68] Stats 58.0: gcodein=0  mcu: mcu_awake=0.004 mcu_task_avg=0.000008 mcu_task_stddev=0.000004 bytes_write=2397 bytes_read=11472 bytes_retransmit=9 bytes_invalid=0 send_seq=240 receive_seq=240 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119996192 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000006 mcu_task_stddev=0.000004 bytes_write=1575 bytes_read=6789 bytes_retransmit=0 bytes_invalid=0 send_seq=182 receive_seq=182 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998591 adj=120001415 leveling_mcu: mcu_awake=0.000 mcu_task_avg=0.000004 mcu_task_stddev=0.000003 bytes_write=966 bytes_read=4871 bytes_retransmit=9 bytes_invalid=0 send_seq=134 receive_seq=134 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71832931 adj=71827977 rpi: mcu_awake=0.001 mcu_task_avg=0.000011 mcu_task_stddev=0.000013 bytes_write=1072 bytes_read=5049 bytes_retransmit=0 bytes_invalid=0 send_seq=146 receive_seq=146 retransmit_seq=0 srtt=0.000 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=50000040 adj=50001468  mcu_temp: temp=25.1 chamber_temp: temp=18.4 heater_bed: target=0 temp=18.8 pwm=0.000 sysload=0.59 cputime=13.273 memavail=155736 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.4 pwm=0.000
+[INFO] 2020-03-01 20:02:00,106 [root] [statistics:generate_stats:68] Stats 61.0: gcodein=0  mcu: mcu_awake=0.004 mcu_task_avg=0.000008 mcu_task_stddev=0.000004 bytes_write=2431 bytes_read=12169 bytes_retransmit=9 bytes_invalid=0 send_seq=245 receive_seq=245 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119996264 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000006 mcu_task_stddev=0.000004 bytes_write=1615 bytes_read=7051 bytes_retransmit=0 bytes_invalid=0 send_seq=188 receive_seq=188 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998545 adj=119998487 leveling_mcu: mcu_awake=0.001 mcu_task_avg=0.000013 mcu_task_stddev=0.000060 bytes_write=984 bytes_read=4933 bytes_retransmit=9 bytes_invalid=0 send_seq=137 receive_seq=137 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71833030 adj=71830560 rpi: mcu_awake=0.001 mcu_task_avg=0.000011 mcu_task_stddev=0.000013 bytes_write=1090 bytes_read=5097 bytes_retransmit=0 bytes_invalid=0 send_seq=149 receive_seq=149 retransmit_seq=0 srtt=0.000 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=50000077 adj=49999893  mcu_temp: temp=25.2 chamber_temp: temp=18.5 heater_bed: target=0 temp=18.8 pwm=0.000 sysload=0.54 cputime=13.425 memavail=155308 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.2 pwm=0.000
+[INFO] 2020-03-01 20:02:03,107 [root] [statistics:generate_stats:68] Stats 64.0: gcodein=0  mcu: mcu_awake=0.003 mcu_task_avg=0.000008 mcu_task_stddev=0.000004 bytes_write=2457 bytes_read=12848 bytes_retransmit=9 bytes_invalid=0 send_seq=249 receive_seq=249 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119996314 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000006 mcu_task_stddev=0.000004 bytes_write=1641 bytes_read=7280 bytes_retransmit=0 bytes_invalid=0 send_seq=192 receive_seq=192 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998541 adj=120000490 leveling_mcu: mcu_awake=0.001 mcu_task_avg=0.000013 mcu_task_stddev=0.000060 bytes_write=1002 bytes_read=4981 bytes_retransmit=9 bytes_invalid=0 send_seq=140 receive_seq=140 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71832782 adj=71834469 rpi: mcu_awake=0.001 mcu_task_avg=0.000010 mcu_task_stddev=0.000010 bytes_write=1108 bytes_read=5158 bytes_retransmit=0 bytes_invalid=0 send_seq=152 receive_seq=152 retransmit_seq=0 srtt=0.000 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=50000070 adj=50001232  mcu_temp: temp=25.3 chamber_temp: temp=18.5 heater_bed: target=0 temp=18.7 pwm=0.000 sysload=0.54 cputime=13.575 memavail=154560 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.4 pwm=0.000
+[INFO] 2020-03-01 20:02:06,106 [root] [statistics:generate_stats:68] Stats 67.0: gcodein=0  mcu: mcu_awake=0.003 mcu_task_avg=0.000008 mcu_task_stddev=0.000004 bytes_write=2491 bytes_read=13530 bytes_retransmit=9 bytes_invalid=0 send_seq=254 receive_seq=254 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119996364 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000006 mcu_task_stddev=0.000004 bytes_write=1675 bytes_read=7512 bytes_retransmit=0 bytes_invalid=0 send_seq=197 receive_seq=197 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998523 adj=120001381 leveling_mcu: mcu_awake=0.000 mcu_task_avg=0.000004 mcu_task_stddev=0.000003 bytes_write=1020 bytes_read=5042 bytes_retransmit=9 bytes_invalid=0 send_seq=143 receive_seq=143 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71832620 adj=71832812 rpi: mcu_awake=0.001 mcu_task_avg=0.000010 mcu_task_stddev=0.000010 bytes_write=1126 bytes_read=5206 bytes_retransmit=0 bytes_invalid=0 send_seq=155 receive_seq=155 retransmit_seq=0 srtt=0.000 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=50000071 adj=50001301  mcu_temp: temp=25.4 chamber_temp: temp=18.5 heater_bed: target=0 temp=18.8 pwm=0.000 sysload=0.58 cputime=13.721 memavail=154208 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.4 pwm=0.000
+[INFO] 2020-03-01 20:02:09,107 [root] [statistics:generate_stats:68] Stats 70.0: gcodein=0  mcu: mcu_awake=0.004 mcu_task_avg=0.000008 mcu_task_stddev=0.000004 bytes_write=2517 bytes_read=14210 bytes_retransmit=9 bytes_invalid=0 send_seq=258 receive_seq=258 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119996409 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000006 mcu_task_stddev=0.000004 bytes_write=1701 bytes_read=7741 bytes_retransmit=0 bytes_invalid=0 send_seq=201 receive_seq=201 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998535 adj=120001404 leveling_mcu: mcu_awake=0.000 mcu_task_avg=0.000004 mcu_task_stddev=0.000002 bytes_write=1044 bytes_read=5115 bytes_retransmit=9 bytes_invalid=0 send_seq=147 receive_seq=147 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71832609 adj=71832776 rpi: mcu_awake=0.001 mcu_task_avg=0.000011 mcu_task_stddev=0.000011 bytes_write=1144 bytes_read=5267 bytes_retransmit=0 bytes_invalid=0 send_seq=158 receive_seq=158 retransmit_seq=0 srtt=0.000 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=50000046 adj=50001349  mcu_temp: temp=25.4 chamber_temp: temp=18.5 heater_bed: target=0 temp=18.8 pwm=0.000 sysload=0.58 cputime=13.871 memavail=154504 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.1 pwm=0.000
+[INFO] 2020-03-01 20:02:12,109 [root] [statistics:generate_stats:68] Stats 73.0: gcodein=0  mcu: mcu_awake=0.004 mcu_task_avg=0.000008 mcu_task_stddev=0.000004 bytes_write=2551 bytes_read=14892 bytes_retransmit=9 bytes_invalid=0 send_seq=263 receive_seq=263 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119996433 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000006 mcu_task_stddev=0.000004 bytes_write=1735 bytes_read=7973 bytes_retransmit=0 bytes_invalid=0 send_seq=206 receive_seq=206 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998520 adj=120001671 leveling_mcu: mcu_awake=0.000 mcu_task_avg=0.000004 mcu_task_stddev=0.000002 bytes_write=1062 bytes_read=5163 bytes_retransmit=9 bytes_invalid=0 send_seq=150 receive_seq=150 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71832623 adj=71833947 rpi: mcu_awake=0.001 mcu_task_avg=0.000009 mcu_task_stddev=0.000007 bytes_write=1162 bytes_read=5328 bytes_retransmit=0 bytes_invalid=0 send_seq=161 receive_seq=161 retransmit_seq=0 srtt=0.000 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=50000028 adj=50001135  mcu_temp: temp=25.6 chamber_temp: temp=18.5 heater_bed: target=0 temp=18.8 pwm=0.000 sysload=0.61 cputime=14.028 memavail=154176 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.1 pwm=0.000
+[INFO] 2020-03-01 20:02:15,113 [root] [statistics:generate_stats:68] Stats 76.0: gcodein=0  mcu: mcu_awake=0.003 mcu_task_avg=0.000008 mcu_task_stddev=0.000004 bytes_write=2577 bytes_read=15571 bytes_retransmit=9 bytes_invalid=0 send_seq=267 receive_seq=267 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119996471 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000006 mcu_task_stddev=0.000004 bytes_write=1761 bytes_read=8202 bytes_retransmit=0 bytes_invalid=0 send_seq=210 receive_seq=210 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998516 adj=120001630 leveling_mcu: mcu_awake=0.000 mcu_task_avg=0.000004 mcu_task_stddev=0.000003 bytes_write=1080 bytes_read=5224 bytes_retransmit=9 bytes_invalid=0 send_seq=153 receive_seq=153 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71832529 adj=71834542 rpi: mcu_awake=0.001 mcu_task_avg=0.000009 mcu_task_stddev=0.000007 bytes_write=1180 bytes_read=5376 bytes_retransmit=0 bytes_invalid=0 send_seq=164 receive_seq=164 retransmit_seq=0 srtt=0.000 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=50000017 adj=50001180  mcu_temp: temp=25.6 chamber_temp: temp=18.5 heater_bed: target=0 temp=18.8 pwm=0.000 sysload=0.56 cputime=14.174 memavail=154180 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.3 pwm=0.000
+[INFO] 2020-03-01 20:02:18,112 [root] [statistics:generate_stats:68] Stats 79.0: gcodein=0  mcu: mcu_awake=0.004 mcu_task_avg=0.000008 mcu_task_stddev=0.000004 bytes_write=2611 bytes_read=16264 bytes_retransmit=9 bytes_invalid=0 send_seq=272 receive_seq=272 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119996493 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000006 mcu_task_stddev=0.000004 bytes_write=1795 bytes_read=8448 bytes_retransmit=0 bytes_invalid=0 send_seq=215 receive_seq=215 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998508 adj=120001549 leveling_mcu: mcu_awake=0.000 mcu_task_avg=0.000004 mcu_task_stddev=0.000003 bytes_write=1098 bytes_read=5272 bytes_retransmit=9 bytes_invalid=0 send_seq=156 receive_seq=156 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71832227 adj=71833534 rpi: mcu_awake=0.001 mcu_task_avg=0.000012 mcu_task_stddev=0.000012 bytes_write=1198 bytes_read=5437 bytes_retransmit=0 bytes_invalid=0 send_seq=167 receive_seq=167 retransmit_seq=0 srtt=0.000 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=50000051 adj=50001164  mcu_temp: temp=25.6 chamber_temp: temp=18.5 heater_bed: target=0 temp=18.8 pwm=0.000 sysload=0.56 cputime=14.326 memavail=153840 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.4 pwm=0.000
+[INFO] 2020-03-01 20:02:21,111 [root] [statistics:generate_stats:68] Stats 82.0: gcodein=0  mcu: mcu_awake=0.004 mcu_task_avg=0.000008 mcu_task_stddev=0.000004 bytes_write=2637 bytes_read=16902 bytes_retransmit=9 bytes_invalid=0 send_seq=276 receive_seq=276 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119996505 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000006 mcu_task_stddev=0.000004 bytes_write=1821 bytes_read=8654 bytes_retransmit=0 bytes_invalid=0 send_seq=219 receive_seq=219 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998509 adj=120001605 leveling_mcu: mcu_awake=0.000 mcu_task_avg=0.000004 mcu_task_stddev=0.000003 bytes_write=1116 bytes_read=5333 bytes_retransmit=9 bytes_invalid=0 send_seq=159 receive_seq=159 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71832090 adj=71831105 rpi: mcu_awake=0.001 mcu_task_avg=0.000012 mcu_task_stddev=0.000012 bytes_write=1216 bytes_read=5485 bytes_retransmit=0 bytes_invalid=0 send_seq=170 receive_seq=170 retransmit_seq=0 srtt=0.000 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=50000037 adj=50001655  mcu_temp: temp=25.7 chamber_temp: temp=18.5 heater_bed: target=0 temp=18.8 pwm=0.000 sysload=0.60 cputime=14.475 memavail=153780 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.4 pwm=0.000
+[INFO] 2020-03-01 20:02:24,111 [root] [statistics:generate_stats:68] Stats 85.0: gcodein=0  mcu: mcu_awake=0.003 mcu_task_avg=0.000008 mcu_task_stddev=0.000004 bytes_write=2671 bytes_read=17598 bytes_retransmit=9 bytes_invalid=0 send_seq=281 receive_seq=281 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119996529 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000006 mcu_task_stddev=0.000004 bytes_write=1855 bytes_read=8900 bytes_retransmit=0 bytes_invalid=0 send_seq=224 receive_seq=224 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998502 adj=120001798 leveling_mcu: mcu_awake=0.000 mcu_task_avg=0.000004 mcu_task_stddev=0.000003 bytes_write=1134 bytes_read=5394 bytes_retransmit=9 bytes_invalid=0 send_seq=162 receive_seq=162 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71832219 adj=71831976 rpi: mcu_awake=0.001 mcu_task_avg=0.000014 mcu_task_stddev=0.000024 bytes_write=1234 bytes_read=5546 bytes_retransmit=0 bytes_invalid=0 send_seq=173 receive_seq=173 retransmit_seq=0 srtt=0.000 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=50000016 adj=50001353  mcu_temp: temp=25.7 chamber_temp: temp=18.6 heater_bed: target=0 temp=18.8 pwm=0.000 sysload=0.60 cputime=14.625 memavail=154348 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.4 pwm=0.000
+[INFO] 2020-03-01 20:02:27,115 [root] [statistics:generate_stats:68] Stats 88.0: gcodein=0  mcu: mcu_awake=0.003 mcu_task_avg=0.000008 mcu_task_stddev=0.000004 bytes_write=2697 bytes_read=18263 bytes_retransmit=9 bytes_invalid=0 send_seq=285 receive_seq=285 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119996547 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000006 mcu_task_stddev=0.000004 bytes_write=1881 bytes_read=9115 bytes_retransmit=0 bytes_invalid=0 send_seq=228 receive_seq=228 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998494 adj=120001604 leveling_mcu: mcu_awake=0.000 mcu_task_avg=0.000004 mcu_task_stddev=0.000003 bytes_write=1152 bytes_read=5442 bytes_retransmit=9 bytes_invalid=0 send_seq=165 receive_seq=165 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71832162 adj=71834836 rpi: mcu_awake=0.001 mcu_task_avg=0.000012 mcu_task_stddev=0.000011 bytes_write=1252 bytes_read=5607 bytes_retransmit=0 bytes_invalid=0 send_seq=176 receive_seq=176 retransmit_seq=0 srtt=0.000 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=50000002 adj=50001112  mcu_temp: temp=25.8 chamber_temp: temp=18.5 heater_bed: target=0 temp=18.8 pwm=0.000 sysload=0.55 cputime=14.772 memavail=154060 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.4 pwm=0.000
+[INFO] 2020-03-01 20:02:30,115 [root] [statistics:generate_stats:68] Stats 91.0: gcodein=0  mcu: mcu_awake=0.004 mcu_task_avg=0.000008 mcu_task_stddev=0.000004 bytes_write=2731 bytes_read=18960 bytes_retransmit=9 bytes_invalid=0 send_seq=290 receive_seq=290 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119996552 nozzle_mcu: mcu_awake=0.002 mcu_task_avg=0.000006 mcu_task_stddev=0.000004 bytes_write=1915 bytes_read=9361 bytes_retransmit=0 bytes_invalid=0 send_seq=233 receive_seq=233 retransmit_seq=0 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=119998494 adj=120001584 leveling_mcu: mcu_awake=0.000 mcu_task_avg=0.000004 mcu_task_stddev=0.000003 bytes_write=1170 bytes_read=5503 bytes_retransmit=9 bytes_invalid=0 send_seq=168 receive_seq=168 retransmit_seq=17 srtt=0.001 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=71832068 adj=71833671 rpi: mcu_awake=0.001 mcu_task_avg=0.000012 mcu_task_stddev=0.000011 bytes_write=1270 bytes_read=5655 bytes_retransmit=0 bytes_invalid=0 send_seq=179 receive_seq=179 retransmit_seq=0 srtt=0.000 rttvar=0.000 rto=0.025 ready_bytes=0 stalled_bytes=0 freq=49999999 adj=50001138  mcu_temp: temp=25.8 chamber_temp: temp=18.5 heater_bed: target=0 temp=18.9 pwm=0.000 sysload=0.50 cputime=14.926 memavail=154124 print_time=25.925 buffer_time=0.000 print_stall=0 extruder: target=0 temp=18.4 pwm=0.000

@@ -1,0 +1,1512 @@
+
+Application Info:
+platform: Linux-4.4.94-mips-with-glibc2.0
+data_path: /usr/data/printer_data
+is_default_data_path: False
+config_file: /usr/data/printer_data/config/moonraker.conf
+backup_config: /usr/data/printer_data/config/.moonraker.conf.bkp
+startup_warnings: []
+verbose: False
+debug: False
+asyncio_debug: False
+is_backup_config: False
+is_python_package: False
+instance_uuid: 49b174a6f7374fb9a9aff2a934e1a5b1
+unix_socket_path: /usr/data/printer_data/comms/moonraker.sock
+structured_logging: False
+software_version: ?
+log_file: /usr/data/printer_data/logs/moonraker.log
+python_version: 3.8.2 (default, Nov  6 2025, 22:01:46)  [GCC 7.2.0]
+launch_args: /usr/data/moonraker-env/bin/python /usr/data/moonraker/moonraker/moonraker.py -d /usr/data/printer_data
+msgspec_enabled: False
+uvloop_enabled: False
+[confighelper.py:read_file()] - Configuration File '/usr/data/printer_data/config/moonraker.conf' parsed, total size: 765 B
+[server.py:add_log_rollover_item()] - 
+#################### Moonraker Configuration ####################
+
+[server]
+host = 0.0.0.0
+port = 7125
+klippy_uds_address = /tmp/klippy_uds
+max_upload_size = 1024
+
+[file_manager]
+queue_gcode_uploads = False
+enable_object_processing = False
+
+[database]
+
+[data_store]
+temperature_store_size = 600
+gcode_store_size = 1000
+
+[machine]
+provider = none
+validate_service = False
+validate_config = False
+
+[authorization]
+force_logins = False
+cors_domains = 
+	*.local
+	*.lan
+	*://app.fluidd.xyz
+trusted_clients = 
+	10.0.0.0/8
+	127.0.0.0/8
+	169.254.0.0/16
+	172.16.0.0/12
+	192.168.0.0/16
+	FE80::/10
+	::1/128
+
+[octoprint_compat]
+
+[history]
+
+[update_manager]
+channel = dev
+refresh_interval = 168
+enable_system_updates = False
+
+#################################################################
+All Configuration Files:
+/usr/data/printer_data/config/moonraker.conf
+#################################################################
+[server.py:load_component()] - Component (secrets) loaded
+[server.py:load_component()] - Component (template) loaded
+[server.py:load_component()] - Component (klippy_connection) loaded
+[application.py:__init__()] - Detected Tornado Version 6.1
+[server.py:load_component()] - Component (application) loaded
+[server.py:load_component()] - Component (websockets) loaded
+[server.py:add_log_rollover_item()] - Loading Sqlite database provider. Sqlite Version: 3.30.1
+[server.py:add_log_rollover_item()] - Unsafe Shutdown Count: 2
+[server.py:load_component()] - Component (database) loaded
+[server.py:load_component()] - Component (dbus_manager) loaded
+[file_manager.py:__init__()] - Using File System Observer: inotify
+[server.py:load_component()] - Component (file_manager) loaded
+[database.py:register_table()] - Found registered table authorized_users
+[authorization.py:__init__()] - Authorization Configuration Loaded
+Trusted Clients:
+10.0.0.0/8
+127.0.0.0/8
+169.254.0.0/16
+172.16.0.0/12
+192.168.0.0/16
+fe80::/10
+::1/128
+CORS Domains:
+.*\.local
+.*\.lan
+.*://app\.fluidd\.xyz
+[server.py:load_component()] - Component (authorization) loaded
+[server.py:load_component()] - Component (klippy_apis) loaded
+[server.py:add_log_rollover_item()] - 
+System Info:
+
+***python***
+  version: (3, 8, 2, 'final', 0)
+  version_string: 3.8.2 (default, Nov  6 2025, 22:01:46)  [GCC 7.2.0]
+
+***cpu_info***
+  cpu_count: 2
+  bits: 32bit
+  processor: mips
+  cpu_desc: 
+  serial_number: 
+  hardware_desc: 
+  model: 
+  total_memory: 214048
+  memory_units: kB
+
+***sd_info***
+  manufacturer_id: 45
+  manufacturer: Unknown
+  oem_id: 0100
+  product_name: DG400
+  product_revision: 3.8
+  serial_number: 010a3654
+  manufacturer_date: 11/2003
+  capacity: Unknown
+  total_bytes: 0
+
+***distribution***
+  name: Buildroot 2020.02.1
+  id: buildroot
+  version: 2020.02.1
+  version_parts: {'major': '2020', 'minor': '02', 'build_number': '1'}
+  like: 
+  codename: 
+  release_info: {}
+  kernel_version: 4.4.94
+
+***virtualization***
+  virt_type: none
+  virt_identifier: none
+
+***network***
+
+***canbus***
+
+***Allowed Services***
+  klipper_mcu
+  webcamd
+  MoonCord
+  KlipperScreen
+  moonraker-telegram-bot
+  moonraker-obico
+  sonar
+  crowsnest
+  octoeverywhere
+  ratos-configurator
+[server.py:load_component()] - Component (shell_command) loaded
+[machine.py:__init__()] - Using System Provider: none
+[server.py:add_log_rollover_item()] - Module libcamera unavailable, import failed
+[server.py:load_component()] - Component (machine) loaded
+[server.py:load_component()] - Component (data_store) loaded
+[proc_stats.py:__init__()] - Unable to find 'vcgencmd', throttle checking disabled
+[proc_stats.py:_get_cpu_thermal_file()] - Monitoring temperature using default thermal zone
+[server.py:load_component()] - Component (proc_stats) loaded
+[server.py:load_component()] - Component (job_state) loaded
+[server.py:load_component()] - Component (job_queue) loaded
+[database.py:register_table()] - Found registered table job_history
+[database.py:register_table()] - Found registered table job_totals
+[server.py:load_component()] - Component (history) loaded
+[server.py:load_component()] - Component (http_client) loaded
+[server.py:load_component()] - Component (announcements) loaded
+[server.py:load_component()] - Component (webcam) loaded
+[server.py:load_component()] - Component (extensions) loaded
+[server.py:load_component()] - Component (update_manager) loaded
+[server.py:load_component()] - Component (octoprint_compat) loaded
+[server.py:_initialize_component()] - Performing Component Post Init: [database]
+[server.py:_initialize_component()] - Performing Component Post Init: [authorization]
+[server.py:_initialize_component()] - Performing Component Post Init: [machine]
+[machine.py:validation_init()] - Installation version in database up to date
+[machine.py:_find_public_ip()] - Detected Local IP: 192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [proc_stats]
+[server.py:_initialize_component()] - Performing Component Post Init: [history]
+[webcam.py:_set_default_host_ip()] - Default public webcam address set: http://192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [announcements]
+[server.py:_initialize_component()] - Performing Component Post Init: [webcam]
+[webcam.py:_set_default_host_ip()] - Default public webcam address set: http://192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [klippy_connection]
+[server.py:_initialize_component()] - Performing Component Post Init: [update_manager]
+[extensions.py:start_unix_server()] - Creating Unix Domain Socket at '/usr/data/printer_data/comms/moonraker.sock'
+[server.py:start_server()] - Starting Moonraker on (0.0.0.0, 7125), Hostname: K1Max-8D34
+[application.py:listen()] - SSL Certificate/Key not configured, aborting HTTPS Server startup
+[klippy_connection.py:_do_connect()] - Klippy Connection Established
+[server.py:add_log_rollover_item()] - Klipper Version: 09faed31-dirty
+[klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
+[klippy_connection.py:_request_initial_subscriptions()] - GCode Output Subscribed
+[job_state.py:_handle_started()] - Job state initialized: standby
+[klippy_connection.py:_check_ready()] - Klippy ready
+[data_store.py:_init_sensors()] - Configuring available sensors: ['temperature_sensor mcu_temp', 'temperature_sensor chamber_temp', 'temperature_fan chamber_fan', 'heater_bed', 'extruder']
+[authorization.py:_check_trusted_connection()] - Trusted Connection Detected, IP: 192.168.4.197
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 31.22ms
+[websockets.py:open()] - Websocket Opened: ID: 1964299408, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1964299408 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[websockets.py:on_close()] - Websocket Closed: ID: 1964299408 Close Code: 1001, Close Reason: None, Pong Time Elapsed: 749.36
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 11.92ms
+[websockets.py:open()] - Websocket Opened: ID: 1964298880, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1964298880 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[common.py:build_error()] - JSON-RPC Request Error - Requested Method: server.database.delete_item, Code: -32601, Message: Key 'remoteprinters.printers.ea4bb013-4e39-4268-9046-f23dd1835ece' in namespace 'mainsail' not found
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 7.78ms
+[websockets.py:open()] - Websocket Opened: ID: 1927116064, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15, Host Name: 192.168.4.183
+[file_manager.py:get_file_list()] - Updating File List <config>...
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 8.14ms
+[websockets.py:open()] - Websocket Opened: ID: 1927115464, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15, Host Name: 192.168.4.183
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 6.59ms
+[websockets.py:open()] - Websocket Opened: ID: 1927117960, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15, Host Name: 192.168.4.183
+[file_manager.py:get_file_list()] - Updating File List <config>...
+[websockets.py:_handle_identify()] - Websocket 1927117960 Client Identified - Name: mainsail, Version: 2.16.1, Type: web
+[websockets.py:on_close()] - Websocket Closed: ID: 1927115464 Close Code: None, Close Reason: None, Pong Time Elapsed: 3.13
+[websockets.py:on_close()] - Websocket Closed: ID: 1927116064 Close Code: 1001, Close Reason: None, Pong Time Elapsed: 30.92
+[websockets.py:on_close()] - Websocket Closed: ID: 1927117960 Close Code: 1001, Close Reason: None, Pong Time Elapsed: 22.80
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 7.53ms
+[websockets.py:open()] - Websocket Opened: ID: 1927256648, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15, Host Name: 192.168.4.183
+[websockets.py:on_close()] - Websocket Closed: ID: 1927256648 Close Code: 1001, Close Reason: None, Pong Time Elapsed: 0.02
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 15.55ms
+[websockets.py:open()] - Websocket Opened: ID: 1927258064, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1927258064 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[websockets.py:on_close()] - Websocket Closed: ID: 1927258064 Close Code: 1001, Close Reason: WebSocket is closed due to suspension., Pong Time Elapsed: 31.06
+[common.py:build_error()] - JSON-RPC Request Error - Requested Method: server.files.zip, Code: 400, Message: No file/directory exits at 'gcodes//3DBenchy_Hyper%20PLA_16m42s%20.gcode'
+[common.py:build_error()] - JSON-RPC Request Error - Requested Method: server.files.zip, Code: 400, Message: No file/directory exits at 'gcodes//3DBenchy_Hyper%20PLA_16m42s%20.gcode'
+[common.py:build_error()] - JSON-RPC Request Error - Requested Method: server.files.zip, Code: 400, Message: No file/directory exits at 'gcodes//scraper-K1%20Max_0.4_Hyper%20PLA_28m.gcode'
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: multipart/form-data; boundary=------------------------2ee2ef41be0b6abf
+[application.py:post()] - Processing Uploaded File: 3DBenchy-K1_Max.gcode
+[shell_command.py:pipe_data_received()] - INFO:metadata:Processor preprocess_cancellation is disabled
+
+[shell_command.py:_check_proc_success()] - Command (/usr/data/moonraker-env/bin/python /usr/data/moonraker/moonraker/components/file_manager/metadata.py -c /tmp/metacfg-vsi3xqr2.json) successfully finished
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 22229.83ms
+[klippy_apis.py:start_print()] - Requesting Job Start, filename = 3DBenchy-K1_Max.gcode
+[job_state.py:_send_job_event()] - Job Started: 3DBenchy-K1_Max.gcode
+[websockets.py:on_close()] - Websocket Closed: ID: 1964298880 Close Code: None, Close Reason: None, Pong Time Elapsed: 5710.87
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 7.37ms
+[websockets.py:open()] - Websocket Opened: ID: 1964298784, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1964298784 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[websockets.py:on_close()] - Websocket Closed: ID: 1964298784 Close Code: None, Close Reason: None, Pong Time Elapsed: 1051.72
+[websockets.py:write_to_socket()] - Websocket closed while writing: 1964298784
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 8.16ms
+[websockets.py:open()] - Websocket Opened: ID: 1964301640, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1964301640 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[websockets.py:on_close()] - Websocket Closed: ID: 1964301640 Close Code: None, Close Reason: None, Pong Time Elapsed: 1046.40
+[websockets.py:write_to_socket()] - Websocket closed while writing: 1964301640
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 15.17ms
+[websockets.py:open()] - Websocket Opened: ID: 1964299840, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1964299840 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[websockets.py:on_close()] - Websocket Closed: ID: 1964299840 Close Code: None, Close Reason: None, Pong Time Elapsed: 1277.91
+[websockets.py:write_to_socket()] - Websocket closed while writing: 1964299840
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 16.01ms
+[websockets.py:open()] - Websocket Opened: ID: 1964302048, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1964302048 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[websockets.py:on_close()] - Websocket Closed: ID: 1964302048 Close Code: None, Close Reason: None, Pong Time Elapsed: 1012.66
+[websockets.py:write_to_socket()] - Websocket closed while writing: 1964302048
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 12.99ms
+[websockets.py:open()] - Websocket Opened: ID: 1964300920, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1964300920 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[websockets.py:on_close()] - Websocket Closed: ID: 1964300920 Close Code: None, Close Reason: None, Pong Time Elapsed: 1018.58
+[websockets.py:write_to_socket()] - Websocket closed while writing: 1964300920
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 9.60ms
+[websockets.py:open()] - Websocket Opened: ID: 1964298952, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1964298952 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[authorization.py:_prune_conn_handler()] - Trusted Connection Expired, IP: 192.168.4.197
+[websockets.py:on_close()] - Websocket Closed: ID: 1964298952 Close Code: None, Close Reason: None, Pong Time Elapsed: 5020.02
+[websockets.py:write_to_socket()] - Websocket closed while writing: 1964298952
+[authorization.py:_check_trusted_connection()] - Trusted Connection Detected, IP: 192.168.4.197
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 10.96ms
+[websockets.py:open()] - Websocket Opened: ID: 1964300344, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1964300344 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[authorization.py:_prune_conn_handler()] - Trusted Connection Expired, IP: 192.168.4.197
+[websockets.py:on_close()] - Websocket Closed: ID: 1964300344 Close Code: None, Close Reason: None, Pong Time Elapsed: 5569.00
+[websockets.py:write_to_socket()] - Websocket closed while writing: 1964300344
+[authorization.py:_check_trusted_connection()] - Trusted Connection Detected, IP: 192.168.4.197
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 9.31ms
+[websockets.py:open()] - Websocket Opened: ID: 1964299288, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1964299288 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[authorization.py:_prune_conn_handler()] - Trusted Connection Expired, IP: 192.168.4.197
+[authorization.py:_check_trusted_connection()] - Trusted Connection Detected, IP: 192.168.4.243
+[application.py:log_request()] - 101 GET /websocket (192.168.4.243) [_TRUSTED_USER_] 10.06ms
+[websockets.py:open()] - Websocket Opened: ID: 1964299720, Proxied: False, User Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.1 Mobile/15E148 Safari/604.1, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1964299720 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[websockets.py:on_close()] - Websocket Closed: ID: 1964299720 Close Code: 1001, Close Reason: None, Pong Time Elapsed: 16.56
+[application.py:log_request()] - 101 GET /websocket (192.168.4.243) [_TRUSTED_USER_] 25.78ms
+[websockets.py:open()] - Websocket Opened: ID: 1984660648, Proxied: False, User Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.1 Mobile/15E148 Safari/604.1, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1984660648 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[application.py:log_request()] - 101 GET /websocket (192.168.4.243) [_TRUSTED_USER_] 10.59ms
+[websockets.py:open()] - Websocket Opened: ID: 1984662592, Proxied: False, User Agent: Dart/3.9 (dart:io), Host Name: 192.168.4.183
+[websockets.py:on_close()] - Websocket Closed: ID: 1984662592 Close Code: 1000, Close Reason: None, Pong Time Elapsed: 0.03
+[application.py:log_request()] - 101 GET /websocket (192.168.4.243) [_TRUSTED_USER_] 5.80ms
+[websockets.py:open()] - Websocket Opened: ID: 1984661176, Proxied: False, User Agent: Dart/3.9 (dart:io), Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1984661176 Client Identified - Name: Mobileraker-ios, Version: 2.9.6-687, Type: mobile
+[common.py:build_error()] - JSON-RPC Request Error - Requested Method: server.database.get_item, Code: -32601, Message: Key 'fcm' in namespace 'mobileraker' not found
+[common.py:build_error()] - JSON-RPC Request Error - Requested Method: server.database.get_item, Code: -32601, Message: Key 'fcm' in namespace 'mobileraker' not found
+[common.py:build_error()] - JSON-RPC Request Error - Requested Method: server.database.get_item, Code: -32601, Message: Key 'webcams' in namespace 'mobileraker' not found
+[common.py:build_error()] - JSON-RPC Request Error - Requested Method: server.database.get_item, Code: -32601, Message: Key 'settings' in namespace 'mobileraker' not found
+[websockets.py:on_close()] - Websocket Closed: ID: 1984660648 Close Code: None, Close Reason: None, Pong Time Elapsed: 39.80
+[websockets.py:on_close()] - Websocket Closed: ID: 1984661176 Close Code: None, Close Reason: None, Pong Time Elapsed: 1235.35
+[websockets.py:write_to_socket()] - Websocket closed while writing: 1984661176
+[common.py:build_error()] - JSON-RPC Request Error - Requested Method: server.files.zip, Code: 400, Message: No file/directory exits at '/config/printer_autosave.cfg'
+[authorization.py:_check_trusted_connection()] - Trusted Connection Detected, IP: 192.168.4.197
+[authorization.py:_check_trusted_connection()] - Trusted Connection Detected, IP: 127.0.0.1
+[authorization.py:_prune_conn_handler()] - Trusted Connection Expired, IP: 192.168.4.243
+[klippy_connection.py:wait()] - Request 'gcode/script' pending: 60.01 seconds
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: 
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryOVHwrmKy4Fu2MGtn
+[application.py:post()] - Processing Uploaded File: moonraker.conf
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 53.44ms
+[websockets.py:on_close()] - Websocket Closed: ID: 1964299288 Close Code: 1001, Close Reason: Server Shutdown, Pong Time Elapsed: 15081.97
+[klippy_connection.py:_on_connection_closed()] - Klippy Connection Removed
+[server.py:main()] - Attempting Server Restart...
+[confighelper.py:read_file()] - Configuration File '/usr/data/printer_data/config/moonraker.conf' parsed, total size: 877 B
+[server.py:add_log_rollover_item()] - 
+#################### Moonraker Configuration ####################
+
+[server]
+host = 0.0.0.0
+port = 7125
+klippy_uds_address = /tmp/klippy_uds
+max_upload_size = 1024
+
+[file_manager]
+queue_gcode_uploads = False
+enable_object_processing = False
+
+[database]
+
+[data_store]
+temperature_store_size = 600
+gcode_store_size = 1000
+
+[machine]
+provider = none
+validate_service = False
+validate_config = False
+
+[authorization]
+force_logins = False
+cors_domains = 
+	*.local
+	*.lan
+	*://app.fluidd.xyz
+trusted_clients = 
+	10.0.0.0/8
+	127.0.0.0/8
+	169.254.0.0/16
+	172.16.0.0/12
+	192.168.0.0/16
+	FE80::/10
+	::1/128
+
+[octoprint_compat]
+
+[history]
+
+[update_manager]
+channel = dev
+refresh_interval = 168
+enable_system_updates = False
+
+[webcam]
+stream_url = http://127.0.0.1:8080/?action=stream
+snapshot_url = http://127.0.0.1:8080/?action=snapshot
+
+#################################################################
+All Configuration Files:
+/usr/data/printer_data/config/moonraker.conf
+#################################################################
+[server.py:load_component()] - Component (secrets) loaded
+[server.py:load_component()] - Component (template) loaded
+[server.py:load_component()] - Component (klippy_connection) loaded
+[application.py:__init__()] - Detected Tornado Version 6.1
+[server.py:load_component()] - Component (application) loaded
+[server.py:load_component()] - Component (websockets) loaded
+[server.py:add_log_rollover_item()] - Loading Sqlite database provider. Sqlite Version: 3.30.1
+[server.py:add_log_rollover_item()] - Unsafe Shutdown Count: 2
+[server.py:load_component()] - Component (database) loaded
+[server.py:load_component()] - Component (dbus_manager) loaded
+[file_manager.py:__init__()] - Using File System Observer: inotify
+[server.py:load_component()] - Component (file_manager) loaded
+[database.py:register_table()] - Found registered table authorized_users
+[authorization.py:__init__()] - Authorization Configuration Loaded
+Trusted Clients:
+10.0.0.0/8
+127.0.0.0/8
+169.254.0.0/16
+172.16.0.0/12
+192.168.0.0/16
+fe80::/10
+::1/128
+CORS Domains:
+.*\.local
+.*\.lan
+.*://app\.fluidd\.xyz
+[server.py:load_component()] - Component (authorization) loaded
+[server.py:load_component()] - Component (klippy_apis) loaded
+[server.py:add_log_rollover_item()] - 
+System Info:
+
+***python***
+  version: (3, 8, 2, 'final', 0)
+  version_string: 3.8.2 (default, Nov  6 2025, 22:01:46)  [GCC 7.2.0]
+
+***cpu_info***
+  cpu_count: 2
+  bits: 32bit
+  processor: mips
+  cpu_desc: 
+  serial_number: 
+  hardware_desc: 
+  model: 
+  total_memory: 214048
+  memory_units: kB
+
+***sd_info***
+  manufacturer_id: 45
+  manufacturer: Unknown
+  oem_id: 0100
+  product_name: DG400
+  product_revision: 3.8
+  serial_number: 010a3654
+  manufacturer_date: 11/2003
+  capacity: Unknown
+  total_bytes: 0
+
+***distribution***
+  name: Buildroot 2020.02.1
+  id: buildroot
+  version: 2020.02.1
+  version_parts: {'major': '2020', 'minor': '02', 'build_number': '1'}
+  like: 
+  codename: 
+  release_info: {}
+  kernel_version: 4.4.94
+
+***virtualization***
+  virt_type: none
+  virt_identifier: none
+
+***network***
+
+***canbus***
+
+***Allowed Services***
+  klipper_mcu
+  webcamd
+  MoonCord
+  KlipperScreen
+  moonraker-telegram-bot
+  moonraker-obico
+  sonar
+  crowsnest
+  octoeverywhere
+  ratos-configurator
+[server.py:load_component()] - Component (shell_command) loaded
+[machine.py:__init__()] - Using System Provider: none
+[server.py:add_log_rollover_item()] - Module libcamera unavailable, import failed
+[server.py:load_component()] - Component (machine) loaded
+[server.py:load_component()] - Component (data_store) loaded
+[proc_stats.py:__init__()] - Unable to find 'vcgencmd', throttle checking disabled
+[proc_stats.py:_get_cpu_thermal_file()] - Monitoring temperature using default thermal zone
+[server.py:load_component()] - Component (proc_stats) loaded
+[server.py:load_component()] - Component (job_state) loaded
+[server.py:load_component()] - Component (job_queue) loaded
+[database.py:register_table()] - Found registered table job_history
+[database.py:register_table()] - Found registered table job_totals
+[server.py:load_component()] - Component (history) loaded
+[server.py:load_component()] - Component (http_client) loaded
+[server.py:load_component()] - Component (announcements) loaded
+[server.py:load_component()] - Component (webcam) loaded
+[server.py:load_component()] - Component (extensions) loaded
+[server.py:load_component()] - Component (update_manager) loaded
+[server.py:load_component()] - Component (octoprint_compat) loaded
+[server.py:add_warning()] - Unparsed config option 'stream_url: http://127.0.0.1:8080/?action=stream' detected in section [webcam].  This may be an option no longer available or could be the result of a module that failed to load.  In the future this will result in a startup error.
+[server.py:add_warning()] - Unparsed config option 'snapshot_url: http://127.0.0.1:8080/?action=snapshot' detected in section [webcam].  This may be an option no longer available or could be the result of a module that failed to load.  In the future this will result in a startup error.
+[server.py:_initialize_component()] - Performing Component Post Init: [database]
+[server.py:_initialize_component()] - Performing Component Post Init: [authorization]
+[server.py:_initialize_component()] - Performing Component Post Init: [machine]
+[machine.py:validation_init()] - Installation version in database up to date
+[machine.py:_find_public_ip()] - Detected Local IP: 192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [proc_stats]
+[server.py:_initialize_component()] - Performing Component Post Init: [history]
+[webcam.py:_set_default_host_ip()] - Default public webcam address set: http://192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [announcements]
+[server.py:_initialize_component()] - Performing Component Post Init: [webcam]
+[webcam.py:_set_default_host_ip()] - Default public webcam address set: http://192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [klippy_connection]
+[server.py:_initialize_component()] - Performing Component Post Init: [update_manager]
+[extensions.py:start_unix_server()] - Creating Unix Domain Socket at '/usr/data/printer_data/comms/moonraker.sock'
+[server.py:start_server()] - Starting Moonraker on (0.0.0.0, 7125), Hostname: K1Max-8D34
+[application.py:listen()] - SSL Certificate/Key not configured, aborting HTTPS Server startup
+[klippy_connection.py:_do_connect()] - Klippy Connection Established
+[server.py:add_log_rollover_item()] - Klipper Version: 09faed31-dirty
+[klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
+[klippy_connection.py:_request_initial_subscriptions()] - GCode Output Subscribed
+[job_state.py:_handle_started()] - Job state initialized: standby
+[klippy_connection.py:_check_ready()] - Klippy ready
+[data_store.py:_init_sensors()] - Configuring available sensors: ['temperature_sensor mcu_temp', 'temperature_sensor chamber_temp', 'temperature_fan chamber_fan', 'heater_bed', 'extruder']
+[authorization.py:_check_trusted_connection()] - Trusted Connection Detected, IP: 192.168.4.197
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 8.99ms
+[websockets.py:open()] - Websocket Opened: ID: 1916977936, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1916977936 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: 
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryAdfmr5d1FoXjCobc
+[application.py:post()] - Processing Uploaded File: moonraker.conf
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 52.49ms
+[websockets.py:on_close()] - Websocket Closed: ID: 1916977936 Close Code: 1001, Close Reason: Server Shutdown, Pong Time Elapsed: 183.85
+[klippy_connection.py:_on_connection_closed()] - Klippy Connection Removed
+[server.py:main()] - Attempting Server Restart...
+[confighelper.py:read_file()] - Configuration File '/usr/data/printer_data/config/moonraker.conf' parsed, total size: 930 B
+[server.py:add_log_rollover_item()] - 
+#################### Moonraker Configuration ####################
+
+[server]
+host = 0.0.0.0
+port = 7125
+klippy_uds_address = /tmp/klippy_uds
+max_upload_size = 1024
+
+[file_manager]
+queue_gcode_uploads = False
+enable_object_processing = False
+
+[database]
+
+[data_store]
+temperature_store_size = 600
+gcode_store_size = 1000
+
+[machine]
+provider = none
+validate_service = False
+validate_config = False
+
+[authorization]
+force_logins = False
+cors_domains = 
+	*.local
+	*.lan
+	*://app.fluidd.xyz
+trusted_clients = 
+	10.0.0.0/8
+	127.0.0.0/8
+	169.254.0.0/16
+	172.16.0.0/12
+	192.168.0.0/16
+	FE80::/10
+	::1/128
+
+[octoprint_compat]
+
+[history]
+
+[update_manager]
+channel = dev
+refresh_interval = 168
+enable_system_updates = False
+
+[webcam chamber]
+location = printer
+service = mjpg_streamer
+stream_url = http://127.0.0.1:8080/?action=stream
+snapshot_url = http://127.0.0.1:8080/?action=snapshot
+
+#################################################################
+All Configuration Files:
+/usr/data/printer_data/config/moonraker.conf
+#################################################################
+[server.py:load_component()] - Component (secrets) loaded
+[server.py:load_component()] - Component (template) loaded
+[server.py:load_component()] - Component (klippy_connection) loaded
+[application.py:__init__()] - Detected Tornado Version 6.1
+[server.py:load_component()] - Component (application) loaded
+[server.py:load_component()] - Component (websockets) loaded
+[server.py:add_log_rollover_item()] - Loading Sqlite database provider. Sqlite Version: 3.30.1
+[server.py:add_log_rollover_item()] - Unsafe Shutdown Count: 2
+[server.py:load_component()] - Component (database) loaded
+[server.py:load_component()] - Component (dbus_manager) loaded
+[file_manager.py:__init__()] - Using File System Observer: inotify
+[server.py:load_component()] - Component (file_manager) loaded
+[database.py:register_table()] - Found registered table authorized_users
+[authorization.py:__init__()] - Authorization Configuration Loaded
+Trusted Clients:
+10.0.0.0/8
+127.0.0.0/8
+169.254.0.0/16
+172.16.0.0/12
+192.168.0.0/16
+fe80::/10
+::1/128
+CORS Domains:
+.*\.local
+.*\.lan
+.*://app\.fluidd\.xyz
+[server.py:load_component()] - Component (authorization) loaded
+[server.py:load_component()] - Component (klippy_apis) loaded
+[server.py:add_log_rollover_item()] - 
+System Info:
+
+***python***
+  version: (3, 8, 2, 'final', 0)
+  version_string: 3.8.2 (default, Nov  6 2025, 22:01:46)  [GCC 7.2.0]
+
+***cpu_info***
+  cpu_count: 2
+  bits: 32bit
+  processor: mips
+  cpu_desc: 
+  serial_number: 
+  hardware_desc: 
+  model: 
+  total_memory: 214048
+  memory_units: kB
+
+***sd_info***
+  manufacturer_id: 45
+  manufacturer: Unknown
+  oem_id: 0100
+  product_name: DG400
+  product_revision: 3.8
+  serial_number: 010a3654
+  manufacturer_date: 11/2003
+  capacity: Unknown
+  total_bytes: 0
+
+***distribution***
+  name: Buildroot 2020.02.1
+  id: buildroot
+  version: 2020.02.1
+  version_parts: {'major': '2020', 'minor': '02', 'build_number': '1'}
+  like: 
+  codename: 
+  release_info: {}
+  kernel_version: 4.4.94
+
+***virtualization***
+  virt_type: none
+  virt_identifier: none
+
+***network***
+
+***canbus***
+
+***Allowed Services***
+  klipper_mcu
+  webcamd
+  MoonCord
+  KlipperScreen
+  moonraker-telegram-bot
+  moonraker-obico
+  sonar
+  crowsnest
+  octoeverywhere
+  ratos-configurator
+[server.py:load_component()] - Component (shell_command) loaded
+[machine.py:__init__()] - Using System Provider: none
+[server.py:add_log_rollover_item()] - Module libcamera unavailable, import failed
+[server.py:load_component()] - Component (machine) loaded
+[server.py:load_component()] - Component (data_store) loaded
+[proc_stats.py:__init__()] - Unable to find 'vcgencmd', throttle checking disabled
+[proc_stats.py:_get_cpu_thermal_file()] - Monitoring temperature using default thermal zone
+[server.py:load_component()] - Component (proc_stats) loaded
+[server.py:load_component()] - Component (job_state) loaded
+[server.py:load_component()] - Component (job_queue) loaded
+[database.py:register_table()] - Found registered table job_history
+[database.py:register_table()] - Found registered table job_totals
+[server.py:load_component()] - Component (history) loaded
+[server.py:load_component()] - Component (http_client) loaded
+[server.py:load_component()] - Component (announcements) loaded
+[server.py:load_component()] - Component (webcam) loaded
+[server.py:load_component()] - Component (extensions) loaded
+[server.py:load_component()] - Component (update_manager) loaded
+[server.py:load_component()] - Component (octoprint_compat) loaded
+[server.py:_initialize_component()] - Performing Component Post Init: [database]
+[server.py:_initialize_component()] - Performing Component Post Init: [authorization]
+[server.py:_initialize_component()] - Performing Component Post Init: [machine]
+[machine.py:validation_init()] - Installation version in database up to date
+[machine.py:_find_public_ip()] - Detected Local IP: 192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [proc_stats]
+[server.py:_initialize_component()] - Performing Component Post Init: [history]
+[webcam.py:_set_default_host_ip()] - Default public webcam address set: http://192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [announcements]
+[server.py:_initialize_component()] - Performing Component Post Init: [webcam]
+[webcam.py:_set_default_host_ip()] - Default public webcam address set: http://192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [klippy_connection]
+[server.py:_initialize_component()] - Performing Component Post Init: [update_manager]
+[confighelper.py:create_backup()] - Backing up last working configuration to '/usr/data/printer_data/config/.moonraker.conf.bkp'
+[extensions.py:start_unix_server()] - Creating Unix Domain Socket at '/usr/data/printer_data/comms/moonraker.sock'
+[server.py:start_server()] - Starting Moonraker on (0.0.0.0, 7125), Hostname: K1Max-8D34
+[application.py:listen()] - SSL Certificate/Key not configured, aborting HTTPS Server startup
+[klippy_connection.py:_do_connect()] - Klippy Connection Established
+[server.py:add_log_rollover_item()] - Klipper Version: 09faed31-dirty
+[klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
+[klippy_connection.py:_request_initial_subscriptions()] - GCode Output Subscribed
+[job_state.py:_handle_started()] - Job state initialized: standby
+[klippy_connection.py:_check_ready()] - Klippy ready
+[data_store.py:_init_sensors()] - Configuring available sensors: ['temperature_sensor mcu_temp', 'temperature_sensor chamber_temp', 'temperature_fan chamber_fan', 'heater_bed', 'extruder']
+[authorization.py:_check_trusted_connection()] - Trusted Connection Detected, IP: 192.168.4.197
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 8.83ms
+[websockets.py:open()] - Websocket Opened: ID: 1916927568, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1916927568 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: 
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary17Vy1na0Bm5IJ1k0
+[application.py:post()] - Processing Uploaded File: moonraker.conf
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 44.89ms
+[websockets.py:on_close()] - Websocket Closed: ID: 1916927568 Close Code: 1001, Close Reason: Server Shutdown, Pong Time Elapsed: 91.65
+[klippy_connection.py:_on_connection_closed()] - Klippy Connection Removed
+[server.py:main()] - Attempting Server Restart...
+[confighelper.py:read_file()] - Configuration File '/usr/data/printer_data/config/moonraker.conf' parsed, total size: 764 B
+[server.py:add_log_rollover_item()] - 
+#################### Moonraker Configuration ####################
+
+[server]
+host = 0.0.0.0
+port = 7125
+klippy_uds_address = /tmp/klippy_uds
+max_upload_size = 1024
+
+[file_manager]
+queue_gcode_uploads = False
+enable_object_processing = False
+
+[database]
+
+[data_store]
+temperature_store_size = 600
+gcode_store_size = 1000
+
+[machine]
+provider = none
+validate_service = False
+validate_config = False
+
+[authorization]
+force_logins = False
+cors_domains = 
+	*.local
+	*.lan
+	*://app.fluidd.xyz
+trusted_clients = 
+	10.0.0.0/8
+	127.0.0.0/8
+	169.254.0.0/16
+	172.16.0.0/12
+	192.168.0.0/16
+	FE80::/10
+	::1/128
+
+[octoprint_compat]
+
+[history]
+
+[update_manager]
+channel = dev
+refresh_interval = 168
+enable_system_updates = False
+
+#################################################################
+All Configuration Files:
+/usr/data/printer_data/config/moonraker.conf
+#################################################################
+[server.py:load_component()] - Component (secrets) loaded
+[server.py:load_component()] - Component (template) loaded
+[server.py:load_component()] - Component (klippy_connection) loaded
+[application.py:__init__()] - Detected Tornado Version 6.1
+[server.py:load_component()] - Component (application) loaded
+[server.py:load_component()] - Component (websockets) loaded
+[server.py:add_log_rollover_item()] - Loading Sqlite database provider. Sqlite Version: 3.30.1
+[server.py:add_log_rollover_item()] - Unsafe Shutdown Count: 2
+[server.py:load_component()] - Component (database) loaded
+[server.py:load_component()] - Component (dbus_manager) loaded
+[file_manager.py:__init__()] - Using File System Observer: inotify
+[server.py:load_component()] - Component (file_manager) loaded
+[database.py:register_table()] - Found registered table authorized_users
+[authorization.py:__init__()] - Authorization Configuration Loaded
+Trusted Clients:
+10.0.0.0/8
+127.0.0.0/8
+169.254.0.0/16
+172.16.0.0/12
+192.168.0.0/16
+fe80::/10
+::1/128
+CORS Domains:
+.*\.local
+.*\.lan
+.*://app\.fluidd\.xyz
+[server.py:load_component()] - Component (authorization) loaded
+[server.py:load_component()] - Component (klippy_apis) loaded
+[server.py:add_log_rollover_item()] - 
+System Info:
+
+***python***
+  version: (3, 8, 2, 'final', 0)
+  version_string: 3.8.2 (default, Nov  6 2025, 22:01:46)  [GCC 7.2.0]
+
+***cpu_info***
+  cpu_count: 2
+  bits: 32bit
+  processor: mips
+  cpu_desc: 
+  serial_number: 
+  hardware_desc: 
+  model: 
+  total_memory: 214048
+  memory_units: kB
+
+***sd_info***
+  manufacturer_id: 45
+  manufacturer: Unknown
+  oem_id: 0100
+  product_name: DG400
+  product_revision: 3.8
+  serial_number: 010a3654
+  manufacturer_date: 11/2003
+  capacity: Unknown
+  total_bytes: 0
+
+***distribution***
+  name: Buildroot 2020.02.1
+  id: buildroot
+  version: 2020.02.1
+  version_parts: {'major': '2020', 'minor': '02', 'build_number': '1'}
+  like: 
+  codename: 
+  release_info: {}
+  kernel_version: 4.4.94
+
+***virtualization***
+  virt_type: none
+  virt_identifier: none
+
+***network***
+
+***canbus***
+
+***Allowed Services***
+  klipper_mcu
+  webcamd
+  MoonCord
+  KlipperScreen
+  moonraker-telegram-bot
+  moonraker-obico
+  sonar
+  crowsnest
+  octoeverywhere
+  ratos-configurator
+[server.py:load_component()] - Component (shell_command) loaded
+[machine.py:__init__()] - Using System Provider: none
+[server.py:add_log_rollover_item()] - Module libcamera unavailable, import failed
+[server.py:load_component()] - Component (machine) loaded
+[server.py:load_component()] - Component (data_store) loaded
+[proc_stats.py:__init__()] - Unable to find 'vcgencmd', throttle checking disabled
+[proc_stats.py:_get_cpu_thermal_file()] - Monitoring temperature using default thermal zone
+[server.py:load_component()] - Component (proc_stats) loaded
+[server.py:load_component()] - Component (job_state) loaded
+[server.py:load_component()] - Component (job_queue) loaded
+[database.py:register_table()] - Found registered table job_history
+[database.py:register_table()] - Found registered table job_totals
+[server.py:load_component()] - Component (history) loaded
+[server.py:load_component()] - Component (http_client) loaded
+[server.py:load_component()] - Component (announcements) loaded
+[server.py:load_component()] - Component (webcam) loaded
+[server.py:load_component()] - Component (extensions) loaded
+[server.py:load_component()] - Component (update_manager) loaded
+[server.py:load_component()] - Component (octoprint_compat) loaded
+[server.py:_initialize_component()] - Performing Component Post Init: [database]
+[server.py:_initialize_component()] - Performing Component Post Init: [authorization]
+[server.py:_initialize_component()] - Performing Component Post Init: [machine]
+[machine.py:validation_init()] - Installation version in database up to date
+[machine.py:_find_public_ip()] - Detected Local IP: 192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [proc_stats]
+[server.py:_initialize_component()] - Performing Component Post Init: [history]
+[webcam.py:_set_default_host_ip()] - Default public webcam address set: http://192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [announcements]
+[server.py:_initialize_component()] - Performing Component Post Init: [webcam]
+[webcam.py:_set_default_host_ip()] - Default public webcam address set: http://192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [klippy_connection]
+[server.py:_initialize_component()] - Performing Component Post Init: [update_manager]
+[confighelper.py:create_backup()] - Backing up last working configuration to '/usr/data/printer_data/config/.moonraker.conf.bkp'
+[extensions.py:start_unix_server()] - Creating Unix Domain Socket at '/usr/data/printer_data/comms/moonraker.sock'
+[server.py:start_server()] - Starting Moonraker on (0.0.0.0, 7125), Hostname: K1Max-8D34
+[application.py:listen()] - SSL Certificate/Key not configured, aborting HTTPS Server startup
+[klippy_connection.py:_do_connect()] - Klippy Connection Established
+[server.py:add_log_rollover_item()] - Klipper Version: 09faed31-dirty
+[klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
+[klippy_connection.py:_request_initial_subscriptions()] - GCode Output Subscribed
+[job_state.py:_handle_started()] - Job state initialized: standby
+[klippy_connection.py:_check_ready()] - Klippy ready
+[data_store.py:_init_sensors()] - Configuring available sensors: ['temperature_sensor mcu_temp', 'temperature_sensor chamber_temp', 'temperature_fan chamber_fan', 'heater_bed', 'extruder']
+[authorization.py:_check_trusted_connection()] - Trusted Connection Detected, IP: 192.168.4.197
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 8.83ms
+[websockets.py:open()] - Websocket Opened: ID: 1907731496, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1907731496 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: 
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary8XL5KHsY7yXSd5VB
+[application.py:post()] - Processing Uploaded File: moonraker.conf
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 51.64ms
+[websockets.py:on_close()] - Websocket Closed: ID: 1907731496 Close Code: 1001, Close Reason: Server Shutdown, Pong Time Elapsed: 169.86
+[klippy_connection.py:_on_connection_closed()] - Klippy Connection Removed
+[server.py:main()] - Attempting Server Restart...
+[confighelper.py:read_file()] - Configuration File '/usr/data/printer_data/config/moonraker.conf' parsed, total size: 935 B
+[server.py:add_log_rollover_item()] - 
+#################### Moonraker Configuration ####################
+
+[server]
+host = 0.0.0.0
+port = 7125
+klippy_uds_address = /tmp/klippy_uds
+max_upload_size = 1024
+
+[file_manager]
+queue_gcode_uploads = False
+enable_object_processing = False
+
+[database]
+
+[data_store]
+temperature_store_size = 600
+gcode_store_size = 1000
+
+[machine]
+provider = none
+validate_service = False
+validate_config = False
+
+[authorization]
+force_logins = False
+cors_domains = 
+	*.local
+	*.lan
+	*://app.fluidd.xyz
+trusted_clients = 
+	10.0.0.0/8
+	127.0.0.0/8
+	169.254.0.0/16
+	172.16.0.0/12
+	192.168.0.0/16
+	FE80::/10
+	::1/128
+
+[octoprint_compat]
+
+[history]
+
+[update_manager]
+channel = dev
+refresh_interval = 168
+enable_system_updates = False
+
+[webcam cam1]
+location = printer
+service = mjpg_streamer
+stream_url = http://192.168.4.183:8080/?action=stream
+snapshot_url = http://192.168.4.183:8080/?action=snapshot
+
+#################################################################
+All Configuration Files:
+/usr/data/printer_data/config/moonraker.conf
+#################################################################
+[server.py:load_component()] - Component (secrets) loaded
+[server.py:load_component()] - Component (template) loaded
+[server.py:load_component()] - Component (klippy_connection) loaded
+[application.py:__init__()] - Detected Tornado Version 6.1
+[server.py:load_component()] - Component (application) loaded
+[server.py:load_component()] - Component (websockets) loaded
+[server.py:add_log_rollover_item()] - Loading Sqlite database provider. Sqlite Version: 3.30.1
+[server.py:add_log_rollover_item()] - Unsafe Shutdown Count: 2
+[server.py:load_component()] - Component (database) loaded
+[server.py:load_component()] - Component (dbus_manager) loaded
+[file_manager.py:__init__()] - Using File System Observer: inotify
+[server.py:load_component()] - Component (file_manager) loaded
+[database.py:register_table()] - Found registered table authorized_users
+[authorization.py:__init__()] - Authorization Configuration Loaded
+Trusted Clients:
+10.0.0.0/8
+127.0.0.0/8
+169.254.0.0/16
+172.16.0.0/12
+192.168.0.0/16
+fe80::/10
+::1/128
+CORS Domains:
+.*\.local
+.*\.lan
+.*://app\.fluidd\.xyz
+[server.py:load_component()] - Component (authorization) loaded
+[server.py:load_component()] - Component (klippy_apis) loaded
+[server.py:add_log_rollover_item()] - 
+System Info:
+
+***python***
+  version: (3, 8, 2, 'final', 0)
+  version_string: 3.8.2 (default, Nov  6 2025, 22:01:46)  [GCC 7.2.0]
+
+***cpu_info***
+  cpu_count: 2
+  bits: 32bit
+  processor: mips
+  cpu_desc: 
+  serial_number: 
+  hardware_desc: 
+  model: 
+  total_memory: 214048
+  memory_units: kB
+
+***sd_info***
+  manufacturer_id: 45
+  manufacturer: Unknown
+  oem_id: 0100
+  product_name: DG400
+  product_revision: 3.8
+  serial_number: 010a3654
+  manufacturer_date: 11/2003
+  capacity: Unknown
+  total_bytes: 0
+
+***distribution***
+  name: Buildroot 2020.02.1
+  id: buildroot
+  version: 2020.02.1
+  version_parts: {'major': '2020', 'minor': '02', 'build_number': '1'}
+  like: 
+  codename: 
+  release_info: {}
+  kernel_version: 4.4.94
+
+***virtualization***
+  virt_type: none
+  virt_identifier: none
+
+***network***
+
+***canbus***
+
+***Allowed Services***
+  klipper_mcu
+  webcamd
+  MoonCord
+  KlipperScreen
+  moonraker-telegram-bot
+  moonraker-obico
+  sonar
+  crowsnest
+  octoeverywhere
+  ratos-configurator
+[server.py:load_component()] - Component (shell_command) loaded
+[machine.py:__init__()] - Using System Provider: none
+[server.py:add_log_rollover_item()] - Module libcamera unavailable, import failed
+[server.py:load_component()] - Component (machine) loaded
+[server.py:load_component()] - Component (data_store) loaded
+[proc_stats.py:__init__()] - Unable to find 'vcgencmd', throttle checking disabled
+[proc_stats.py:_get_cpu_thermal_file()] - Monitoring temperature using default thermal zone
+[server.py:load_component()] - Component (proc_stats) loaded
+[server.py:load_component()] - Component (job_state) loaded
+[server.py:load_component()] - Component (job_queue) loaded
+[database.py:register_table()] - Found registered table job_history
+[database.py:register_table()] - Found registered table job_totals
+[server.py:load_component()] - Component (history) loaded
+[server.py:load_component()] - Component (http_client) loaded
+[server.py:load_component()] - Component (announcements) loaded
+[server.py:load_component()] - Component (webcam) loaded
+[server.py:load_component()] - Component (extensions) loaded
+[server.py:load_component()] - Component (update_manager) loaded
+[server.py:load_component()] - Component (octoprint_compat) loaded
+[server.py:_initialize_component()] - Performing Component Post Init: [database]
+[server.py:_initialize_component()] - Performing Component Post Init: [authorization]
+[server.py:_initialize_component()] - Performing Component Post Init: [machine]
+[machine.py:validation_init()] - Installation version in database up to date
+[machine.py:_find_public_ip()] - Detected Local IP: 192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [proc_stats]
+[server.py:_initialize_component()] - Performing Component Post Init: [history]
+[webcam.py:_set_default_host_ip()] - Default public webcam address set: http://192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [announcements]
+[server.py:_initialize_component()] - Performing Component Post Init: [webcam]
+[webcam.py:_set_default_host_ip()] - Default public webcam address set: http://192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [klippy_connection]
+[server.py:_initialize_component()] - Performing Component Post Init: [update_manager]
+[confighelper.py:create_backup()] - Backing up last working configuration to '/usr/data/printer_data/config/.moonraker.conf.bkp'
+[extensions.py:start_unix_server()] - Creating Unix Domain Socket at '/usr/data/printer_data/comms/moonraker.sock'
+[server.py:start_server()] - Starting Moonraker on (0.0.0.0, 7125), Hostname: K1Max-8D34
+[application.py:listen()] - SSL Certificate/Key not configured, aborting HTTPS Server startup
+[klippy_connection.py:_do_connect()] - Klippy Connection Established
+[server.py:add_log_rollover_item()] - Klipper Version: 09faed31-dirty
+[klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
+[klippy_connection.py:_request_initial_subscriptions()] - GCode Output Subscribed
+[job_state.py:_handle_started()] - Job state initialized: standby
+[klippy_connection.py:_check_ready()] - Klippy ready
+[data_store.py:_init_sensors()] - Configuring available sensors: ['temperature_sensor mcu_temp', 'temperature_sensor chamber_temp', 'temperature_fan chamber_fan', 'heater_bed', 'extruder']
+[authorization.py:_check_trusted_connection()] - Trusted Connection Detected, IP: 192.168.4.197
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 10.91ms
+[websockets.py:open()] - Websocket Opened: ID: 1906611824, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1906611824 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: 
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryOrOGH1XwNM7ODEkV
+[application.py:post()] - Processing Uploaded File: moonraker.conf
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 51.14ms
+[websockets.py:on_close()] - Websocket Closed: ID: 1906611824 Close Code: 1001, Close Reason: Server Shutdown, Pong Time Elapsed: 252.14
+[klippy_connection.py:_on_connection_closed()] - Klippy Connection Removed
+[server.py:main()] - Attempting Server Restart...
+[confighelper.py:read_file()] - Configuration File '/usr/data/printer_data/config/moonraker.conf' parsed, total size: 931 B
+[server.py:add_log_rollover_item()] - 
+#################### Moonraker Configuration ####################
+
+[server]
+host = 0.0.0.0
+port = 7125
+klippy_uds_address = /tmp/klippy_uds
+max_upload_size = 1024
+
+[file_manager]
+queue_gcode_uploads = False
+enable_object_processing = False
+
+[database]
+
+[data_store]
+temperature_store_size = 600
+gcode_store_size = 1000
+
+[machine]
+provider = none
+validate_service = False
+validate_config = False
+
+[authorization]
+force_logins = False
+cors_domains = 
+	*.local
+	*.lan
+	*://app.fluidd.xyz
+trusted_clients = 
+	10.0.0.0/8
+	127.0.0.0/8
+	169.254.0.0/16
+	172.16.0.0/12
+	192.168.0.0/16
+	FE80::/10
+	::1/128
+
+[octoprint_compat]
+
+[history]
+
+[update_manager]
+channel = dev
+refresh_interval = 168
+enable_system_updates = False
+
+[webcam cam1]
+location = printer
+service = mjpegstreamer
+stream_url = http://192.168.4.183:8080/?action=stream
+snapshot_url = http://192.168.4.183:8080/?action=snapshot
+
+#################################################################
+All Configuration Files:
+/usr/data/printer_data/config/moonraker.conf
+#################################################################
+[server.py:load_component()] - Component (secrets) loaded
+[server.py:load_component()] - Component (template) loaded
+[server.py:load_component()] - Component (klippy_connection) loaded
+[application.py:__init__()] - Detected Tornado Version 6.1
+[server.py:load_component()] - Component (application) loaded
+[server.py:load_component()] - Component (websockets) loaded
+[server.py:add_log_rollover_item()] - Loading Sqlite database provider. Sqlite Version: 3.30.1
+[server.py:add_log_rollover_item()] - Unsafe Shutdown Count: 2
+[server.py:load_component()] - Component (database) loaded
+[server.py:load_component()] - Component (dbus_manager) loaded
+[file_manager.py:__init__()] - Using File System Observer: inotify
+[server.py:load_component()] - Component (file_manager) loaded
+[database.py:register_table()] - Found registered table authorized_users
+[authorization.py:__init__()] - Authorization Configuration Loaded
+Trusted Clients:
+10.0.0.0/8
+127.0.0.0/8
+169.254.0.0/16
+172.16.0.0/12
+192.168.0.0/16
+fe80::/10
+::1/128
+CORS Domains:
+.*\.local
+.*\.lan
+.*://app\.fluidd\.xyz
+[server.py:load_component()] - Component (authorization) loaded
+[server.py:load_component()] - Component (klippy_apis) loaded
+[server.py:add_log_rollover_item()] - 
+System Info:
+
+***python***
+  version: (3, 8, 2, 'final', 0)
+  version_string: 3.8.2 (default, Nov  6 2025, 22:01:46)  [GCC 7.2.0]
+
+***cpu_info***
+  cpu_count: 2
+  bits: 32bit
+  processor: mips
+  cpu_desc: 
+  serial_number: 
+  hardware_desc: 
+  model: 
+  total_memory: 214048
+  memory_units: kB
+
+***sd_info***
+  manufacturer_id: 45
+  manufacturer: Unknown
+  oem_id: 0100
+  product_name: DG400
+  product_revision: 3.8
+  serial_number: 010a3654
+  manufacturer_date: 11/2003
+  capacity: Unknown
+  total_bytes: 0
+
+***distribution***
+  name: Buildroot 2020.02.1
+  id: buildroot
+  version: 2020.02.1
+  version_parts: {'major': '2020', 'minor': '02', 'build_number': '1'}
+  like: 
+  codename: 
+  release_info: {}
+  kernel_version: 4.4.94
+
+***virtualization***
+  virt_type: none
+  virt_identifier: none
+
+***network***
+
+***canbus***
+
+***Allowed Services***
+  klipper_mcu
+  webcamd
+  MoonCord
+  KlipperScreen
+  moonraker-telegram-bot
+  moonraker-obico
+  sonar
+  crowsnest
+  octoeverywhere
+  ratos-configurator
+[server.py:load_component()] - Component (shell_command) loaded
+[machine.py:__init__()] - Using System Provider: none
+[server.py:add_log_rollover_item()] - Module libcamera unavailable, import failed
+[server.py:load_component()] - Component (machine) loaded
+[server.py:load_component()] - Component (data_store) loaded
+[proc_stats.py:__init__()] - Unable to find 'vcgencmd', throttle checking disabled
+[proc_stats.py:_get_cpu_thermal_file()] - Monitoring temperature using default thermal zone
+[server.py:load_component()] - Component (proc_stats) loaded
+[server.py:load_component()] - Component (job_state) loaded
+[server.py:load_component()] - Component (job_queue) loaded
+[database.py:register_table()] - Found registered table job_history
+[database.py:register_table()] - Found registered table job_totals
+[server.py:load_component()] - Component (history) loaded
+[server.py:load_component()] - Component (http_client) loaded
+[server.py:load_component()] - Component (announcements) loaded
+[server.py:load_component()] - Component (webcam) loaded
+[server.py:load_component()] - Component (extensions) loaded
+[server.py:load_component()] - Component (update_manager) loaded
+[server.py:load_component()] - Component (octoprint_compat) loaded
+[server.py:_initialize_component()] - Performing Component Post Init: [database]
+[server.py:_initialize_component()] - Performing Component Post Init: [authorization]
+[server.py:_initialize_component()] - Performing Component Post Init: [machine]
+[machine.py:validation_init()] - Installation version in database up to date
+[machine.py:_find_public_ip()] - Detected Local IP: 192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [proc_stats]
+[server.py:_initialize_component()] - Performing Component Post Init: [history]
+[webcam.py:_set_default_host_ip()] - Default public webcam address set: http://192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [announcements]
+[server.py:_initialize_component()] - Performing Component Post Init: [webcam]
+[webcam.py:_set_default_host_ip()] - Default public webcam address set: http://192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [klippy_connection]
+[server.py:_initialize_component()] - Performing Component Post Init: [update_manager]
+[confighelper.py:create_backup()] - Backing up last working configuration to '/usr/data/printer_data/config/.moonraker.conf.bkp'
+[extensions.py:start_unix_server()] - Creating Unix Domain Socket at '/usr/data/printer_data/comms/moonraker.sock'
+[server.py:start_server()] - Starting Moonraker on (0.0.0.0, 7125), Hostname: K1Max-8D34
+[application.py:listen()] - SSL Certificate/Key not configured, aborting HTTPS Server startup
+[klippy_connection.py:_do_connect()] - Klippy Connection Established
+[server.py:add_log_rollover_item()] - Klipper Version: 09faed31-dirty
+[klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
+[klippy_connection.py:_request_initial_subscriptions()] - GCode Output Subscribed
+[job_state.py:_handle_started()] - Job state initialized: standby
+[klippy_connection.py:_check_ready()] - Klippy ready
+[data_store.py:_init_sensors()] - Configuring available sensors: ['temperature_sensor mcu_temp', 'temperature_sensor chamber_temp', 'temperature_fan chamber_fan', 'heater_bed', 'extruder']
+[authorization.py:_check_trusted_connection()] - Trusted Connection Detected, IP: 192.168.4.197
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 27.46ms
+[websockets.py:open()] - Websocket Opened: ID: 1917186424, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1917186424 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: 
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryCVv8KSWv8BTsDcrE
+[application.py:post()] - Processing Uploaded File: moonraker.conf
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 48.73ms
+[websockets.py:on_close()] - Websocket Closed: ID: 1917186424 Close Code: 1001, Close Reason: Server Shutdown, Pong Time Elapsed: 44.03
+[klippy_connection.py:_on_connection_closed()] - Klippy Connection Removed
+[server.py:main()] - Attempting Server Restart...
+[confighelper.py:read_file()] - Configuration File '/usr/data/printer_data/config/moonraker.conf' parsed, total size: 934 B
+[server.py:add_log_rollover_item()] - 
+#################### Moonraker Configuration ####################
+
+[server]
+host = 0.0.0.0
+port = 7125
+klippy_uds_address = /tmp/klippy_uds
+max_upload_size = 1024
+
+[file_manager]
+queue_gcode_uploads = False
+enable_object_processing = False
+
+[database]
+
+[data_store]
+temperature_store_size = 600
+gcode_store_size = 1000
+
+[machine]
+provider = none
+validate_service = False
+validate_config = False
+
+[authorization]
+force_logins = False
+cors_domains = 
+	*.local
+	*.lan
+	*://app.fluidd.xyz
+trusted_clients = 
+	10.0.0.0/8
+	127.0.0.0/8
+	169.254.0.0/16
+	172.16.0.0/12
+	192.168.0.0/16
+	FE80::/10
+	::1/128
+
+[octoprint_compat]
+
+[history]
+
+[update_manager]
+channel = dev
+refresh_interval = 168
+enable_system_updates = False
+
+[webcam Chamber]
+location = printer
+service = mjpegstreamer
+stream_url = http://192.168.4.183:8080/?action=stream
+snapshot_url = http://192.168.4.183:8080/?action=snapshot
+
+#################################################################
+All Configuration Files:
+/usr/data/printer_data/config/moonraker.conf
+#################################################################
+[server.py:load_component()] - Component (secrets) loaded
+[server.py:load_component()] - Component (template) loaded
+[server.py:load_component()] - Component (klippy_connection) loaded
+[application.py:__init__()] - Detected Tornado Version 6.1
+[server.py:load_component()] - Component (application) loaded
+[server.py:load_component()] - Component (websockets) loaded
+[server.py:add_log_rollover_item()] - Loading Sqlite database provider. Sqlite Version: 3.30.1
+[server.py:add_log_rollover_item()] - Unsafe Shutdown Count: 2
+[server.py:load_component()] - Component (database) loaded
+[server.py:load_component()] - Component (dbus_manager) loaded
+[file_manager.py:__init__()] - Using File System Observer: inotify
+[server.py:load_component()] - Component (file_manager) loaded
+[database.py:register_table()] - Found registered table authorized_users
+[authorization.py:__init__()] - Authorization Configuration Loaded
+Trusted Clients:
+10.0.0.0/8
+127.0.0.0/8
+169.254.0.0/16
+172.16.0.0/12
+192.168.0.0/16
+fe80::/10
+::1/128
+CORS Domains:
+.*\.local
+.*\.lan
+.*://app\.fluidd\.xyz
+[server.py:load_component()] - Component (authorization) loaded
+[server.py:load_component()] - Component (klippy_apis) loaded
+[server.py:add_log_rollover_item()] - 
+System Info:
+
+***python***
+  version: (3, 8, 2, 'final', 0)
+  version_string: 3.8.2 (default, Nov  6 2025, 22:01:46)  [GCC 7.2.0]
+
+***cpu_info***
+  cpu_count: 2
+  bits: 32bit
+  processor: mips
+  cpu_desc: 
+  serial_number: 
+  hardware_desc: 
+  model: 
+  total_memory: 214048
+  memory_units: kB
+
+***sd_info***
+  manufacturer_id: 45
+  manufacturer: Unknown
+  oem_id: 0100
+  product_name: DG400
+  product_revision: 3.8
+  serial_number: 010a3654
+  manufacturer_date: 11/2003
+  capacity: Unknown
+  total_bytes: 0
+
+***distribution***
+  name: Buildroot 2020.02.1
+  id: buildroot
+  version: 2020.02.1
+  version_parts: {'major': '2020', 'minor': '02', 'build_number': '1'}
+  like: 
+  codename: 
+  release_info: {}
+  kernel_version: 4.4.94
+
+***virtualization***
+  virt_type: none
+  virt_identifier: none
+
+***network***
+
+***canbus***
+
+***Allowed Services***
+  klipper_mcu
+  webcamd
+  MoonCord
+  KlipperScreen
+  moonraker-telegram-bot
+  moonraker-obico
+  sonar
+  crowsnest
+  octoeverywhere
+  ratos-configurator
+[server.py:load_component()] - Component (shell_command) loaded
+[machine.py:__init__()] - Using System Provider: none
+[server.py:add_log_rollover_item()] - Module libcamera unavailable, import failed
+[server.py:load_component()] - Component (machine) loaded
+[server.py:load_component()] - Component (data_store) loaded
+[proc_stats.py:__init__()] - Unable to find 'vcgencmd', throttle checking disabled
+[proc_stats.py:_get_cpu_thermal_file()] - Monitoring temperature using default thermal zone
+[server.py:load_component()] - Component (proc_stats) loaded
+[server.py:load_component()] - Component (job_state) loaded
+[server.py:load_component()] - Component (job_queue) loaded
+[database.py:register_table()] - Found registered table job_history
+[database.py:register_table()] - Found registered table job_totals
+[server.py:load_component()] - Component (history) loaded
+[server.py:load_component()] - Component (http_client) loaded
+[server.py:load_component()] - Component (announcements) loaded
+[server.py:load_component()] - Component (webcam) loaded
+[server.py:load_component()] - Component (extensions) loaded
+[server.py:load_component()] - Component (update_manager) loaded
+[server.py:load_component()] - Component (octoprint_compat) loaded
+[server.py:_initialize_component()] - Performing Component Post Init: [database]
+[server.py:_initialize_component()] - Performing Component Post Init: [authorization]
+[server.py:_initialize_component()] - Performing Component Post Init: [machine]
+[machine.py:validation_init()] - Installation version in database up to date
+[machine.py:_find_public_ip()] - Detected Local IP: 192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [proc_stats]
+[server.py:_initialize_component()] - Performing Component Post Init: [history]
+[webcam.py:_set_default_host_ip()] - Default public webcam address set: http://192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [announcements]
+[server.py:_initialize_component()] - Performing Component Post Init: [webcam]
+[webcam.py:_set_default_host_ip()] - Default public webcam address set: http://192.168.4.183
+[server.py:_initialize_component()] - Performing Component Post Init: [klippy_connection]
+[server.py:_initialize_component()] - Performing Component Post Init: [update_manager]
+[confighelper.py:create_backup()] - Backing up last working configuration to '/usr/data/printer_data/config/.moonraker.conf.bkp'
+[extensions.py:start_unix_server()] - Creating Unix Domain Socket at '/usr/data/printer_data/comms/moonraker.sock'
+[server.py:start_server()] - Starting Moonraker on (0.0.0.0, 7125), Hostname: K1Max-8D34
+[application.py:listen()] - SSL Certificate/Key not configured, aborting HTTPS Server startup
+[klippy_connection.py:_do_connect()] - Klippy Connection Established
+[server.py:add_log_rollover_item()] - Klipper Version: 09faed31-dirty
+[klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
+[klippy_connection.py:_request_initial_subscriptions()] - GCode Output Subscribed
+[job_state.py:_handle_started()] - Job state initialized: standby
+[klippy_connection.py:_check_ready()] - Klippy ready
+[data_store.py:_init_sensors()] - Configuring available sensors: ['temperature_sensor mcu_temp', 'temperature_sensor chamber_temp', 'temperature_fan chamber_fan', 'heater_bed', 'extruder']
+[authorization.py:_check_trusted_connection()] - Trusted Connection Detected, IP: 192.168.4.197
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 11.42ms
+[websockets.py:open()] - Websocket Opened: ID: 1906621696, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1906621696 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
