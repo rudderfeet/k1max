@@ -10,8 +10,11 @@ Backup procedure:
 
 Notes:
 - Printer runs Creality Buildroot firmware
-- Moonraker + Mainsail only
+- Moonraker + Mainsail only (no Fluid)
 - No on-printer git tools available
+- Creality has non-upstream Klipper components (prtouch_v2, multi-MCU layout)
+- The OS is Buildroot-based and intentionally restrictive
+- Small firmware updates can subtly invalidate assumptions to say the least, so don't do it!
 - See: https://github.com/Mariusjuvet1/creality-k1-setup
 - BUT NOTE THIS TOOK A LOT OF BACK AND FORTH EDITING WITH CHATGPT TO CORRECT
 - Primary Klipper config location: /usr/data/printer_data/config/
