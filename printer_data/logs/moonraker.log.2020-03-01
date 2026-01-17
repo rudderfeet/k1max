@@ -20,7 +20,7 @@ python_version: 3.8.2 (default, Nov  6 2025, 22:01:46)  [GCC 7.2.0]
 launch_args: /usr/data/moonraker-env/bin/python /usr/data/moonraker/moonraker/moonraker.py -d /usr/data/printer_data
 msgspec_enabled: False
 uvloop_enabled: False
-[confighelper.py:read_file()] - Configuration File '/usr/data/printer_data/config/moonraker.conf' parsed, total size: 934 B
+[confighelper.py:read_file()] - Configuration File '/usr/data/printer_data/config/moonraker.conf' parsed, total size: 933 B
 [server.py:add_log_rollover_item()] - 
 #################### Moonraker Configuration ####################
 
@@ -32,7 +32,7 @@ max_upload_size = 1024
 
 [file_manager]
 queue_gcode_uploads = False
-enable_object_processing = False
+enable_object_processing = True
 
 [database]
 
@@ -86,7 +86,7 @@ All Configuration Files:
 [server.py:load_component()] - Component (application) loaded
 [server.py:load_component()] - Component (websockets) loaded
 [server.py:add_log_rollover_item()] - Loading Sqlite database provider. Sqlite Version: 3.30.1
-[server.py:add_log_rollover_item()] - Unsafe Shutdown Count: 3
+[server.py:add_log_rollover_item()] - Unsafe Shutdown Count: 5
 [server.py:load_component()] - Component (database) loaded
 [server.py:load_component()] - Component (dbus_manager) loaded
 [file_manager.py:__init__()] - Using File System Observer: inotify
@@ -182,8 +182,8 @@ System Info:
 [server.py:load_component()] - Component (announcements) loaded
 [server.py:load_component()] - Component (webcam) loaded
 [server.py:load_component()] - Component (extensions) loaded
-[server.py:load_component()] - Component (octoprint_compat) loaded
 [server.py:load_component()] - Component (update_manager) loaded
+[server.py:load_component()] - Component (octoprint_compat) loaded
 [server.py:_initialize_component()] - Performing Component Post Init: [database]
 [server.py:_initialize_component()] - Performing Component Post Init: [authorization]
 [server.py:_initialize_component()] - Performing Component Post Init: [machine]
@@ -204,76 +204,97 @@ System Info:
 [server.py:add_log_rollover_item()] - Klipper Version: 09faed31-dirty
 [klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
 [klippy_connection.py:_request_initial_subscriptions()] - GCode Output Subscribed
+[ioloop.py:_run_callback()] - Exception in callback functools.partial(<bound method _Connector.on_timeout of <tornado.tcpclient._Connector object at 0x75022a30>>)
+Traceback (most recent call last):
+  File "/usr/lib/python3.8/site-packages/tornado/ioloop.py", line 741, in _run_callback
+    ret = callback()
+  File "/usr/lib/python3.8/site-packages/tornado/tcpclient.py", line 169, in on_timeout
+    self.try_connect(iter(self.secondary_addrs))
+  File "/usr/lib/python3.8/site-packages/tornado/tcpclient.py", line 123, in try_connect
+    stream, future = self.connect(af, addr)
+  File "/usr/lib/python3.8/site-packages/tornado/tcpclient.py", line 312, in _create_stream
+    socket_obj = socket.socket(af)
+  File "/usr/lib/python3.8/socket.py", line 231, in __init__
+    _socket.socket.__init__(self, family, type, proto, fileno)
+OSError: [Errno 124] Address family not supported by protocol
 [job_state.py:_handle_started()] - Job state initialized: standby
 [klippy_connection.py:_check_ready()] - Klippy ready
 [data_store.py:_init_sensors()] - Configuring available sensors: ['temperature_sensor mcu_temp', 'temperature_sensor chamber_temp', 'temperature_fan chamber_fan', 'heater_bed', 'extruder']
 [authorization.py:_check_trusted_connection()] - Trusted Connection Detected, IP: 192.168.4.197
-[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 108.48ms
-[websockets.py:open()] - Websocket Opened: ID: 1974344984, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
-[websockets.py:_handle_identify()] - Websocket 1974344984 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 18.84ms
+[websockets.py:open()] - Websocket Opened: ID: 1963077056, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1963077056 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: multipart/form-data; boundary=------------------------4bf00d8fe8808789
+[application.py:post()] - Processing Uploaded File: spacers-02mm-to-1mm.gcode
+[shell_command.py:pipe_data_received()] - INFO:metadata:File 'spacers-02mm-to-1mm.gcode' currently supports cancellation, processing aborted
+
+[shell_command.py:_check_proc_success()] - Command (/usr/data/moonraker-env/bin/python /usr/data/moonraker/moonraker/components/file_manager/metadata.py -c /tmp/metacfg-qthp2flh.json) successfully finished
+[klippy_apis.py:start_print()] - Requesting Job Start, filename = spacers-02mm-to-1mm.gcode
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 9944.56ms
+[job_state.py:_send_job_event()] - Job Started: spacers-02mm-to-1mm.gcode
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: multipart/form-data; boundary=------------------------8cde200ea357c350
+[application.py:post()] - Processing Uploaded File: k1_max_270_hinge-bot.gcode
+[shell_command.py:pipe_data_received()] - INFO:metadata:File 'k1_max_270_hinge-bot.gcode' currently supports cancellation, processing aborted
+
+[shell_command.py:_check_proc_success()] - Command (/usr/data/moonraker-env/bin/python /usr/data/moonraker/moonraker/components/file_manager/metadata.py -c /tmp/metacfg-grttm8yn.json) successfully finished
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 36375.47ms
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: multipart/form-data; boundary=------------------------71f1c12e20d64811
+[application.py:post()] - Processing Uploaded File: Door Latch K1 Max.gcode
+[shell_command.py:pipe_data_received()] - INFO:metadata:File 'Door Latch K1 Max.gcode' currently supports cancellation, processing aborted
+
+[shell_command.py:_check_proc_success()] - Command (/usr/data/moonraker-env/bin/python /usr/data/moonraker/moonraker/components/file_manager/metadata.py -c /tmp/metacfg-89yb6z7k.json) successfully finished
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 14237.34ms
+[klippy_connection.py:wait()] - Request 'gcode/script' pending: 60.01 seconds
 [application.py:prepare()] - Upload Request Received from 192.168.4.197
 Content-Type: 
 [application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryABjoipgqfivTTP09
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary1YJSiqcJt30lNyZa
 [application.py:post()] - Processing Uploaded File: printer.cfg
-[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 74.90ms
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 49.54ms
+[klippy_connection.py:wait()] - Request 'gcode/script' pending: 120.01 seconds
 [application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: 
-[application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundarygiF3cl5xzAjHZj1B
-[application.py:post()] - Processing Uploaded File: printer.cfg
-[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 97.37ms
-[klippy_connection.py:_on_connection_closed()] - Klippy Connection Removed
-[klippy_connection.py:_do_connect()] - Klippy Connection Established
-[klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
-[klippy_connection.py:_request_initial_subscriptions()] - GCode Output Subscribed
-[klippy_connection.py:_check_ready()] - 
-Include file '/usr/data/printer_data/config/kamp/KAMP_Settings.cfg' does not exist
-
-Once the underlying issue is corrected, use the "RESTART"
-command to reload the config and restart the host software.
-Printer is halted
-
-[application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: 
-[application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryIOqnCGVi7bdvLMR7
-[application.py:post()] - Processing Uploaded File: printer.cfg
-[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 46.54ms
-[klippy_connection.py:_on_connection_closed()] - Klippy Connection Removed
-[klippy_connection.py:_do_connect()] - Klippy Connection Established
-[klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
-[klippy_connection.py:_request_initial_subscriptions()] - GCode Output Subscribed
-[klippy_connection.py:_check_ready()] - 
-Include file '/usr/data/printer_data/config/kamp/Configuration/KAMP_Settings.cfg' does not exist
-
-Once the underlying issue is corrected, use the "RESTART"
-command to reload the config and restart the host software.
-Printer is halted
-
-[application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: 
-[application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryepkdAuk0O5B3LRRY
-[application.py:post()] - Processing Uploaded File: printer.cfg
-[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 57.22ms
-[klippy_connection.py:_on_connection_closed()] - Klippy Connection Removed
-[klippy_connection.py:_do_connect()] - Klippy Connection Established
-[klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
-[klippy_connection.py:_request_initial_subscriptions()] - GCode Output Subscribed
-[klippy_connection.py:_check_ready()] - 
-Include file '/usr/data/printer_data/config/kamp/Configuration/KAMP_Mesh.cfg' does not exist
-
-Once the underlying issue is corrected, use the "RESTART"
-command to reload the config and restart the host software.
-Printer is halted
-
-[application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: 
-[application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryWQB8XRnraTotL9tg
-[application.py:post()] - Processing Uploaded File: printer.cfg
-[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 65.92ms
+Content-Type: multipart/form-data; boundary=------------------------c33702f76d235aa0
+[klippy_connection.py:wait()] - Request 'gcode/script' pending: 180.02 seconds
+[klippy_connection.py:wait()] - Request 'gcode/script' pending: 60.00 seconds
+[klippy_connection.py:_process_status_update()] - Klippy has shutdown
+[proc_stats.py:_handle_shutdown()] - 
+Moonraker System Usage Statistics:
+System Time: 1768611167.006932, Usage: 13.42%, Memory: None None
+System Time: 1768611168.004694, Usage: 13.17%, Memory: None None
+System Time: 1768611169.003860, Usage: 15.46%, Memory: None None
+System Time: 1768611170.005299, Usage: 13.95%, Memory: None None
+System Time: 1768611171.006996, Usage: 11.23%, Memory: None None
+System Time: 1768611172.011697, Usage: 18.16%, Memory: None None
+System Time: 1768611173.009486, Usage: 11.94%, Memory: None None
+System Time: 1768611174.011894, Usage: 12.53%, Memory: None None
+System Time: 1768611175.014016, Usage: 14.73%, Memory: None None
+System Time: 1768611176.033541, Usage: 16.12%, Memory: None None
+System Time: 1768611177.020228, Usage: 17.1%, Memory: None None
+System Time: 1768611178.021681, Usage: 10.07%, Memory: None None
+System Time: 1768611179.038664, Usage: 11.72%, Memory: None None
+System Time: 1768611180.039834, Usage: 12.56%, Memory: None None
+System Time: 1768611181.042414, Usage: 12.19%, Memory: None None
+System Time: 1768611182.045894, Usage: 14.43%, Memory: None None
+System Time: 1768611183.053091, Usage: 8.93%, Memory: None None
+System Time: 1768611184.057819, Usage: 9.46%, Memory: None None
+System Time: 1768611185.054625, Usage: 20.79%, Memory: None None
+System Time: 1768611186.052212, Usage: 17.66%, Memory: None None
+System Time: 1768611187.053602, Usage: 19.63%, Memory: None None
+System Time: 1768611188.054525, Usage: 19.32%, Memory: None None
+System Time: 1768611189.055781, Usage: 13.68%, Memory: None None
+System Time: 1768611190.060015, Usage: 15.63%, Memory: None None
+System Time: 1768611191.058230, Usage: 20.15%, Memory: None None
+System Time: 1768611192.059274, Usage: 12.33%, Memory: None None
+System Time: 1768611193.060809, Usage: 12.85%, Memory: None None
+System Time: 1768611194.062948, Usage: 11.12%, Memory: None None
+System Time: 1768611195.067877, Usage: 19.49%, Memory: None None
+System Time: 1768611196.065439, Usage: 14.24%, Memory: None None
+CPU Temperature: None
+[common.py:build_error()] - JSON-RPC Request Error - Requested Method: printer.gcode.script, Code: 400, Message: {"code":"key60", "msg":"Internal error on command:_BED_MESH_CALIBRATE", "values": ["_BED_MESH_CALIBRATE"]}
+[common.py:build_error()] - JSON-RPC Request Error - Requested Method: printer.gcode.script, Code: 400, Message: {"code":"key60", "msg":"Internal error on command:_BED_MESH_CALIBRATE", "values": ["_BED_MESH_CALIBRATE"]}
 [klippy_connection.py:_on_connection_closed()] - Klippy Connection Removed
 [klippy_connection.py:_do_connect()] - Klippy Connection Established
 [klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
@@ -281,66 +302,17 @@ Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryWQB8XRnraTotL9
 [job_state.py:_handle_started()] - Job state initialized: standby
 [klippy_connection.py:_check_ready()] - Klippy ready
 [data_store.py:_init_sensors()] - Configuring available sensors: ['temperature_sensor mcu_temp', 'temperature_sensor chamber_temp', 'temperature_fan chamber_fan', 'heater_bed', 'extruder']
+[application.py:post()] - Processing Uploaded File: K1_max_Light_strip_bracket.gcode
+[shell_command.py:pipe_data_received()] - INFO:metadata:File 'K1_max_Light_strip_bracket.gcode' currently supports cancellation, processing aborted
+
+[shell_command.py:_check_proc_success()] - Command (/usr/data/moonraker-env/bin/python /usr/data/moonraker/moonraker/components/file_manager/metadata.py -c /tmp/metacfg-3racduoz.json) successfully finished
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 104005.23ms
 [application.py:prepare()] - Upload Request Received from 192.168.4.197
 Content-Type: 
 [application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundarySqllDCfkHHE6bfxr
-[application.py:post()] - Processing Uploaded File: printer.cfg
-[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 58.90ms
-[klippy_connection.py:_on_connection_closed()] - Klippy Connection Removed
-[klippy_connection.py:_do_connect()] - Klippy Connection Established
-[klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
-[klippy_connection.py:_request_initial_subscriptions()] - GCode Output Subscribed
-[job_state.py:_handle_started()] - Job state initialized: standby
-[klippy_connection.py:_check_ready()] - Klippy ready
-[data_store.py:_init_sensors()] - Configuring available sensors: ['temperature_sensor mcu_temp', 'temperature_sensor chamber_temp', 'temperature_fan chamber_fan', 'heater_bed', 'extruder']
-[klippy_connection.py:_on_connection_closed()] - Klippy Connection Removed
-[klippy_connection.py:_do_connect()] - Klippy Connection Established
-[klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
-[klippy_connection.py:_request_initial_subscriptions()] - GCode Output Subscribed
-[klippy_connection.py:_check_ready()] - 
-Include file '/usr/data/printer_data/config/kamp/Configuration/./KAMP/Adaptive_Meshing.cfg' does not exist
-
-Once the underlying issue is corrected, use the "RESTART"
-command to reload the config and restart the host software.
-Printer is halted
-
-[application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: 
-[application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundarymlqvu1yNZUX7Dwd2
-[application.py:post()] - Processing Uploaded File: KAMP_Settings.cfg
-[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 64.13ms
-[klippy_connection.py:_on_connection_closed()] - Klippy Connection Removed
-[klippy_connection.py:_do_connect()] - Klippy Connection Established
-[klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
-[klippy_connection.py:_request_initial_subscriptions()] - GCode Output Subscribed
-[klippy_connection.py:_check_ready()] - 
-Include file '/usr/data/printer_data/config/kamp/Configuration/./kamp/Configuration/Adaptive_Meshing.cfg' does not exist
-
-Once the underlying issue is corrected, use the "RESTART"
-command to reload the config and restart the host software.
-Printer is halted
-
-[application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: 
-[application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryCiBRouH1tBsO5cqE
-[application.py:post()] - Processing Uploaded File: KAMP_Settings.cfg
-[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 51.77ms
-[klippy_connection.py:_on_connection_closed()] - Klippy Connection Removed
-[klippy_connection.py:_do_connect()] - Klippy Connection Established
-[klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
-[klippy_connection.py:_request_initial_subscriptions()] - GCode Output Subscribed
-[job_state.py:_handle_started()] - Job state initialized: standby
-[klippy_connection.py:_check_ready()] - Klippy ready
-[data_store.py:_init_sensors()] - Configuring available sensors: ['temperature_sensor mcu_temp', 'temperature_sensor chamber_temp', 'temperature_fan chamber_fan', 'heater_bed', 'extruder']
-[application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: 
-[application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryg2jJmTZMOlEr4t3M
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryAV14K79AhcWgbRU7
 [application.py:post()] - Processing Uploaded File: gcode_macro.cfg
-[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 51.81ms
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 69.71ms
 [klippy_connection.py:_on_connection_closed()] - Klippy Connection Removed
 [klippy_connection.py:_do_connect()] - Klippy Connection Established
 [klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
@@ -348,40 +320,64 @@ Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryg2jJmTZMOlEr4t
 [job_state.py:_handle_started()] - Job state initialized: standby
 [klippy_connection.py:_check_ready()] - Klippy ready
 [data_store.py:_init_sensors()] - Configuring available sensors: ['temperature_sensor mcu_temp', 'temperature_sensor chamber_temp', 'temperature_fan chamber_fan', 'heater_bed', 'extruder']
+[application.py:log_request()] - 404 GET /server/files/gcodes/.thumbs/k1_max_270_hinge-top-32x32.png?timestamp=1768602409.268473 (192.168.4.197) [_TRUSTED_USER_] 57.73ms
+[application.py:log_request()] - 404 GET /server/files/gcodes/.thumbs/Pickcard-ASA-32x32.png?timestamp=1768599429.7421846 (192.168.4.197) [_TRUSTED_USER_] 69.68ms
+[application.py:log_request()] - 404 GET /server/files/gcodes/.thumbs/k1_max_270_hinge-top-32x32.png?timestamp=1768601867.7613785 (192.168.4.197) [_TRUSTED_USER_] 72.11ms
 [application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: multipart/form-data; boundary=------------------------202dcb81145d908f
-[application.py:post()] - Processing Uploaded File: Pickcard.gcode
-[shell_command.py:pipe_data_received()] - INFO:metadata:Processor preprocess_cancellation is disabled
+Content-Type: multipart/form-data; boundary=------------------------df23b64639284e35
+[application.py:post()] - Processing Uploaded File: spacers-02mm-to-1mm.gcode
+[shell_command.py:pipe_data_received()] - INFO:metadata:File 'spacers-02mm-to-1mm.gcode' currently supports cancellation, processing aborted
 
-[shell_command.py:_check_proc_success()] - Command (/usr/data/moonraker-env/bin/python /usr/data/moonraker/moonraker/components/file_manager/metadata.py -c /tmp/metacfg-el7l2sq4.json) successfully finished
-[klippy_apis.py:start_print()] - Requesting Job Start, filename = Pickcard.gcode
+[shell_command.py:_check_proc_success()] - Command (/usr/data/moonraker-env/bin/python /usr/data/moonraker/moonraker/components/file_manager/metadata.py -c /tmp/metacfg-eg304rwj.json) successfully finished
+[klippy_apis.py:start_print()] - Requesting Job Start, filename = spacers-02mm-to-1mm.gcode
 [file_manager.py:_check_action()] - 
 Inotify action mismatch:
 Expected action: create_file, Inotify action: modify_file
-Requested path: /usr/data/printer_data/gcodes/Pickcard.gcode
-Inotify path: /usr/data/printer_data/gcodes/Pickcard.gcode
+Requested path: /usr/data/printer_data/gcodes/spacers-02mm-to-1mm.gcode
+Inotify path: /usr/data/printer_data/gcodes/spacers-02mm-to-1mm.gcode
 Is move/copy: False
-[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 5049.86ms
-[job_state.py:_send_job_event()] - Job Started: Pickcard.gcode
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 7911.70ms
+[job_state.py:_send_job_event()] - Job Started: spacers-02mm-to-1mm.gcode
 [application.py:prepare()] - Upload Request Received from 192.168.4.197
 Content-Type: 
 [application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary5zLAAXhrUHTcPpE3
-[application.py:post()] - Processing Uploaded File: moonraker.conf
-[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 63.13ms
-[authorization.py:_check_trusted_connection()] - Trusted Connection Detected, IP: 192.168.4.183
-[application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: 
-[application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryBiywq9Z8BJkdS9Yd
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary27DG7W6tV5qn45DE
 [application.py:post()] - Processing Uploaded File: KAMP_Settings.cfg
-[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 95.45ms
-[application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: 
-[application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryddvnN4QRGFA43wlq
-[application.py:post()] - Processing Uploaded File: gcode_macro.cfg
-[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 60.97ms
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 66.32ms
+[klippy_connection.py:_process_status_update()] - Klippy has shutdown
+[proc_stats.py:_handle_shutdown()] - 
+Moonraker System Usage Statistics:
+System Time: 1768612370.683385, Usage: 3.96%, Memory: None None
+System Time: 1768612371.689388, Usage: 6.51%, Memory: None None
+System Time: 1768612372.702212, Usage: 4.75%, Memory: None None
+System Time: 1768612373.690621, Usage: 20.09%, Memory: None None
+System Time: 1768612374.697072, Usage: 3.73%, Memory: None None
+System Time: 1768612375.697353, Usage: 4.18%, Memory: None None
+System Time: 1768612376.697501, Usage: 4.33%, Memory: None None
+System Time: 1768612377.711388, Usage: 4.86%, Memory: None None
+System Time: 1768612378.701041, Usage: 4.47%, Memory: None None
+System Time: 1768612379.705667, Usage: 4.02%, Memory: None None
+System Time: 1768612380.705965, Usage: 4.42%, Memory: None None
+System Time: 1768612381.710419, Usage: 5.88%, Memory: None None
+System Time: 1768612382.710817, Usage: 4.12%, Memory: None None
+System Time: 1768612383.718284, Usage: 4.48%, Memory: None None
+System Time: 1768612384.714192, Usage: 4.44%, Memory: None None
+System Time: 1768612385.720344, Usage: 3.88%, Memory: None None
+System Time: 1768612386.717458, Usage: 3.61%, Memory: None None
+System Time: 1768612387.718862, Usage: 3.37%, Memory: None None
+System Time: 1768612388.726533, Usage: 4.46%, Memory: None None
+System Time: 1768612389.724807, Usage: 4.55%, Memory: None None
+System Time: 1768612390.736021, Usage: 3.53%, Memory: None None
+System Time: 1768612391.736525, Usage: 7.11%, Memory: None None
+System Time: 1768612392.740477, Usage: 3.43%, Memory: None None
+System Time: 1768612393.740675, Usage: 3.48%, Memory: None None
+System Time: 1768612394.748328, Usage: 4.02%, Memory: None None
+System Time: 1768612395.750918, Usage: 3.99%, Memory: None None
+System Time: 1768612396.753724, Usage: 4.01%, Memory: None None
+System Time: 1768612397.756342, Usage: 4.03%, Memory: None None
+System Time: 1768612398.763558, Usage: 3.6%, Memory: None None
+System Time: 1768612399.766371, Usage: 4.03%, Memory: None None
+CPU Temperature: None
 [klippy_connection.py:_on_connection_closed()] - Klippy Connection Removed
 [klippy_connection.py:_do_connect()] - Klippy Connection Established
 [klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
@@ -390,38 +386,111 @@ Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryddvnN4QRGFA43w
 [klippy_connection.py:_check_ready()] - Klippy ready
 [data_store.py:_init_sensors()] - Configuring available sensors: ['temperature_sensor mcu_temp', 'temperature_sensor chamber_temp', 'temperature_fan chamber_fan', 'heater_bed', 'extruder']
 [application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: multipart/form-data; boundary=------------------------808693a53551eb7d
-[application.py:post()] - Processing Uploaded File: Pickcard.gcode
-[shell_command.py:pipe_data_received()] - INFO:metadata:Processor preprocess_cancellation is disabled
-
-[shell_command.py:_check_proc_success()] - Command (/usr/data/moonraker-env/bin/python /usr/data/moonraker/moonraker/components/file_manager/metadata.py -c /tmp/metacfg-h4d9wzlk.json) successfully finished
-[klippy_apis.py:start_print()] - Requesting Job Start, filename = Pickcard.gcode
-[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 4931.98ms
-[job_state.py:_send_job_event()] - Job Started: Pickcard.gcode
-[websockets.py:on_close()] - Websocket Closed: ID: 1974344984 Close Code: None, Close Reason: None, Pong Time Elapsed: 3364.44
+Content-Type: 
 [application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: multipart/form-data; boundary=------------------------f44ae761fea73e1c
-[application.py:post()] - Processing Uploaded File: Pickcard.gcode
-[shell_command.py:pipe_data_received()] - INFO:metadata:Processor preprocess_cancellation is disabled
-
-[shell_command.py:_check_proc_success()] - Command (/usr/data/moonraker-env/bin/python /usr/data/moonraker/moonraker/components/file_manager/metadata.py -c /tmp/metacfg-hna5ljk2.json) successfully finished
-[klippy_apis.py:start_print()] - Requesting Job Start, filename = Pickcard.gcode
-[file_manager.py:_check_action()] - 
-Inotify action mismatch:
-Expected action: create_file, Inotify action: modify_file
-Requested path: /usr/data/printer_data/gcodes/Pickcard.gcode
-Inotify path: /usr/data/printer_data/gcodes/Pickcard.gcode
-Is move/copy: False
-[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 5117.93ms
-[job_state.py:_send_job_event()] - Job Started: Pickcard.gcode
-[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 11.29ms
-[websockets.py:open()] - Websocket Opened: ID: 1974344720, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
-[websockets.py:_handle_identify()] - Websocket 1974344720 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
-[klippy_connection.py:wait()] - Request 'gcode/script' pending: 60.02 seconds
-[klippy_connection.py:wait()] - Request 'gcode/script' pending: 120.04 seconds
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryvnxnpoUPjPFDqh8s
+[application.py:post()] - Processing Uploaded File: printer.cfg
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 51.49ms
 [application.py:prepare()] - Upload Request Received from 192.168.4.197
 Content-Type: 
 [application.py:prepare()] - Upload Request Received from 192.168.4.197
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryQPLPqvYBleYgNYG3
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryK9eFJnEgJ9Fuezg0
 [application.py:post()] - Processing Uploaded File: gcode_macro.cfg
-[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 115.14ms
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 62.74ms
+[klippy_connection.py:_on_connection_closed()] - Klippy Connection Removed
+[klippy_connection.py:_do_connect()] - Klippy Connection Established
+[klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
+[klippy_connection.py:_request_initial_subscriptions()] - GCode Output Subscribed
+[job_state.py:_handle_started()] - Job state initialized: standby
+[klippy_connection.py:_check_ready()] - Klippy ready
+[data_store.py:_init_sensors()] - Configuring available sensors: ['temperature_sensor mcu_temp', 'temperature_sensor chamber_temp', 'temperature_fan chamber_fan', 'heater_bed', 'extruder']
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: multipart/form-data; boundary=------------------------ad45e4ebf96e2dc6
+[application.py:post()] - Processing Uploaded File: spacers-02mm-to-1mm.gcode
+[shell_command.py:pipe_data_received()] - INFO:metadata:File 'spacers-02mm-to-1mm.gcode' currently supports cancellation, processing aborted
+
+[shell_command.py:_check_proc_success()] - Command (/usr/data/moonraker-env/bin/python /usr/data/moonraker/moonraker/components/file_manager/metadata.py -c /tmp/metacfg-kn8mensj.json) successfully finished
+[klippy_apis.py:start_print()] - Requesting Job Start, filename = spacers-02mm-to-1mm.gcode
+[file_manager.py:_check_action()] - 
+Inotify action mismatch:
+Expected action: create_file, Inotify action: modify_file
+Requested path: /usr/data/printer_data/gcodes/spacers-02mm-to-1mm.gcode
+Inotify path: /usr/data/printer_data/gcodes/spacers-02mm-to-1mm.gcode
+Is move/copy: False
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 7563.22ms
+[job_state.py:_send_job_event()] - Job Started: spacers-02mm-to-1mm.gcode
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: 
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryqKp1miSfaMhAVDaH
+[application.py:post()] - Processing Uploaded File: printer.cfg
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 36.85ms
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: 
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryGRjHvywuOeWSLFoT
+[application.py:post()] - Processing Uploaded File: KAMP_Settings.cfg
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 58.97ms
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: 
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryMmmUmrFi64VMdZgo
+[application.py:post()] - Processing Uploaded File: Adaptive_Meshing.cfg
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 55.83ms
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: 
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary1tx8QfqncgzcbNxh
+[application.py:post()] - Processing Uploaded File: Adaptive_Meshing.cfg
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 54.86ms
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: 
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryV6BwBqOaLAiGsAc7
+[application.py:post()] - Processing Uploaded File: gcode_macro.cfg
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 128.68ms
+[klippy_connection.py:_on_connection_closed()] - Klippy Connection Removed
+[klippy_connection.py:_do_connect()] - Klippy Connection Established
+[klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
+[klippy_connection.py:_request_initial_subscriptions()] - GCode Output Subscribed
+[job_state.py:_handle_started()] - Job state initialized: standby
+[klippy_connection.py:_check_ready()] - Klippy ready
+[data_store.py:_init_sensors()] - Configuring available sensors: ['temperature_sensor mcu_temp', 'temperature_sensor chamber_temp', 'temperature_fan chamber_fan', 'heater_bed', 'extruder']
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: multipart/form-data; boundary=------------------------495c2bc24eea3628
+[application.py:post()] - Processing Uploaded File: Door Latch K1 Max.gcode
+[shell_command.py:pipe_data_received()] - INFO:metadata:File 'Door Latch K1 Max.gcode' currently supports cancellation, processing aborted
+
+[shell_command.py:_check_proc_success()] - Command (/usr/data/moonraker-env/bin/python /usr/data/moonraker/moonraker/components/file_manager/metadata.py -c /tmp/metacfg-9wg299qp.json) successfully finished
+[klippy_apis.py:start_print()] - Requesting Job Start, filename = Door Latch K1 Max.gcode
+[file_manager.py:_check_action()] - 
+Inotify action mismatch:
+Expected action: create_file, Inotify action: modify_file
+Requested path: /usr/data/printer_data/gcodes/Door Latch K1 Max.gcode
+Inotify path: /usr/data/printer_data/gcodes/Door Latch K1 Max.gcode
+Is move/copy: False
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 17002.74ms
+[job_state.py:_send_job_event()] - Job Started: Door Latch K1 Max.gcode
+[klippy_connection.py:_on_connection_closed()] - Klippy Connection Removed
+[klippy_connection.py:_do_connect()] - Klippy Connection Established
+[klippy_connection.py:_request_initial_subscriptions()] - Webhooks Subscribed
+[klippy_connection.py:_request_initial_subscriptions()] - GCode Output Subscribed
+[job_state.py:_handle_started()] - Job state initialized: standby
+[klippy_connection.py:_check_ready()] - Klippy ready
+[data_store.py:_init_sensors()] - Configuring available sensors: ['temperature_sensor mcu_temp', 'temperature_sensor chamber_temp', 'temperature_fan chamber_fan', 'heater_bed', 'extruder']
+[application.py:log_request()] - 404 GET /server/files/gcodes/.thumbs/k1_max_270_hinge-top-32x32.png?timestamp=1768602409.268473 (192.168.4.197) [_TRUSTED_USER_] 27.48ms
+[application.py:log_request()] - 404 GET /server/files/gcodes/.thumbs/k1_max_270_hinge-top-32x32.png?timestamp=1768601867.7613785 (192.168.4.197) [_TRUSTED_USER_] 22.49ms
+[application.py:log_request()] - 404 GET /server/files/gcodes/.thumbs/Pickcard-ASA-32x32.png?timestamp=1768599429.7421846 (192.168.4.197) [_TRUSTED_USER_] 37.20ms
+[websockets.py:on_close()] - Websocket Closed: ID: 1963077056 Close Code: 1001, Close Reason: None, Pong Time Elapsed: 5934.35
+[application.py:log_request()] - 101 GET /websocket (192.168.4.197) [_TRUSTED_USER_] 13.50ms
+[websockets.py:open()] - Websocket Opened: ID: 1963074656, Proxied: False, User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36, Host Name: 192.168.4.183
+[websockets.py:_handle_identify()] - Websocket 1963074656 Client Identified - Name: mainsail, Version: 2.17.0, Type: web
+[application.py:prepare()] - Upload Request Received from 192.168.4.197
+Content-Type: multipart/form-data; boundary=------------------------d7952a99acb71bc5
+[application.py:post()] - Processing Uploaded File: k1_max_270_hinge-bot.gcode
+[shell_command.py:pipe_data_received()] - INFO:metadata:File 'k1_max_270_hinge-bot.gcode' currently supports cancellation, processing aborted
+
+[shell_command.py:_check_proc_success()] - Command (/usr/data/moonraker-env/bin/python /usr/data/moonraker/moonraker/components/file_manager/metadata.py -c /tmp/metacfg-h42o7zy7.json) successfully finished
+[klippy_apis.py:start_print()] - Requesting Job Start, filename = k1_max_270_hinge-bot.gcode
+[application.py:log_request()] - 201 POST /server/files/upload (192.168.4.197) [_TRUSTED_USER_] 55980.79ms
+[job_state.py:_send_job_event()] - Job Started: k1_max_270_hinge-bot.gcode

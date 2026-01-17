@@ -8,7 +8,7 @@ Backup procedure:
    scp -O -r root@<printer-ip>:/usr/data/printer_data ./printer_data
 3. Commit and push
 
-Notes:
+Printer Notes:
 - Printer runs Creality Buildroot firmware
 - Moonraker + Mainsail only (no Fluid)
 - No on-printer git tools available
@@ -23,3 +23,13 @@ Notes:
 - So, to back these up, use this once: curl http://127.0.0.1:7125/server/info > /usr/data/printer_data/config/baseline_server_info.json
 -   then do this periodically from my local Mac:
 - scp -O -r root@<printer-ip>:/usr/data/printer_data ./k1max-backup/
+
+Slicer Notes:
+- Create one printer profile which points to an IP-reserved physical machine
+- Create one print profile for each quality (layer height) and nozzle, and go as fast as the printer will allow
+- Create one filament profile for each significantly different material, and limit speed using max volumetric rate
+  - PLA: 20 mm3/s, 200C nozzle, 45C bed
+  - ABS, ASA: 12 mm3/s, 250C nozzle, 100C bed
+  - PETG, PCTG: 14 mm3/s, 250C nozzle, 100C bed
+  - PA, PC: 7, 275C nozzle, 100C bed
+  - TPU: 4, 200C nozzle
