@@ -33,3 +33,6 @@ Slicer Notes:
   - PETG, PCTG: 14 mm3/s, 250C nozzle, 100C bed
   - PA, PC: 7, 275C nozzle, 100C bed
   - TPU: 4, 200C nozzle
+
+Bed Leveling Notes:
+- Follow the steps here: https://www.reddit.com/r/crealityk1/comments/17htfug/traming_your_k1_bed_2_electric_boogaloo/
