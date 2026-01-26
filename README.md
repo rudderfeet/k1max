@@ -33,8 +33,8 @@ Slicer Notes:
   - PETG: 12 mm3/s, 250C nozzle, 90C bed
   - PA: 7 mm3/s, 275C nozzle, 100C bed
   - PC: 7 mm3/s, 275C nozzle, 100C bed
-  - PLA: 20 mm3/s, 200C nozzle, 45C bed
-  - TPU: 4 mm3/s, 200C nozzle, ambient bed
+  - PLA: 20 mm3/s, 200C nozzle, 50C bed
+  - TPU: 1.2-3 mm3/s, 200C nozzle, ambient-to-50C bed
 
 Bed Leveling Notes:
 - Follow the steps here: https://www.reddit.com/r/crealityk1/comments/17htfug/traming_your_k1_bed_2_electric_boogaloo/
@@ -48,16 +48,16 @@ Filament Calibration (Mid-January 2026):
    - ASA / ABS = 1.025x
    - PCTG = 1.00x
    - PETG = 0.98x
-   - PC
-   - PA
-   - PLA
+   - PC = 0.925x
+   - PLA = 1.0x
+   - TPU = 1.15x
  5. Shrinkage Compensation XY (dimensional accuracy) from Califlower tests, only after #4!
    - ASA / ABS = 0.41%
    - PCTG = 0.39%
    - PETG = 0.32%
-   - PC
-   - PA
-   - PLA
+   - PC = 0.51
+   - PLA = 1.0x
+   - TPU = 0.0%
 6. Optional micro-optimizations (holes, elephant foot, etc.)
    - Top surface improvements
 	  - Monotonic top infill
